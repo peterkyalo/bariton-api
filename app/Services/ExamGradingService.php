@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\ExamAttempt;
-use App\Models\ExamAttemptAnswer;
 use App\Models\ExamRubricScore;
 use App\Models\User;
 use Illuminate\Validation\ValidationException;

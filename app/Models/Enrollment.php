@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Str;
 
 class Enrollment extends Model
@@ -85,7 +86,7 @@ class Enrollment extends Model
         return $this->hasMany(ExamAttempt::class);
     }
 
-    public function certificate(): \Illuminate\Database\Eloquent\Relations\HasOne
+    public function certificate(): HasOne
     {
         return $this->hasOne(Certificate::class);
     }

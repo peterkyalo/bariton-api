@@ -99,6 +99,7 @@ class ExamService
 
             if (now()->lessThan($availableAt)) {
                 $hoursRemaining = now()->diffInHours($availableAt, false);
+
                 return [
                     'allowed' => false,
                     'cooling_off' => true,
@@ -177,6 +178,7 @@ class ExamService
         $effectiveExpiresAt = $attempt->upload_grace_period_expires_at ?? $attempt->expires_at;
         if (now()->greaterThan($effectiveExpiresAt)) {
             $submittedAttempt = $this->submitAttempt($attempt);
+
             return [
                 'status' => 'expired_and_submitted',
                 'message' => 'Time has expired. Your examination was automatically submitted.',

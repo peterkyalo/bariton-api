@@ -310,5 +310,67 @@ class CoursesSeeder extends Seeder
                 'is_published' => true,
             ]
         );
+
+        // 8. Seed Course Final Exam (Phase 4b)
+        $exam = \App\Models\Exam::updateOrCreate(
+            ['course_id' => $course->id, 'slug' => 'classical-piano-mastery-final-examination'],
+            [
+                'title' => 'Classical Piano Mastery Final Certification Examination',
+                'description' => 'Comprehensive theoretical, analytical, and practical conservatory examination assessing keyboard technique, voice leading, and performance execution.',
+                'instructions' => "This examination consists of auto-graded multiple choice questions, written theory analysis, and an unedited recorded performance. The server timer will automatically submit your attempt once duration expires. When recording performance, pausing the timer grants a 15-minute upload grace period.\n\nPass mark: 70%. Good luck!",
+                'duration_minutes' => 60,
+                'is_active' => true,
+            ]
+        );
+
+        if ($exam->questions()->count() === 0) {
+            $exam->questions()->create([
+                'question_type' => 'multiple_choice',
+                'prompt' => 'Which key signature has three sharps (F#, C#, G#)?',
+                'points' => 20,
+                'order' => 1,
+                'options' => [
+                    ['id' => 'a', 'text' => 'G Major'],
+                    ['id' => 'b', 'text' => 'D Major'],
+                    ['id' => 'c', 'text' => 'A Major'],
+                    ['id' => 'd', 'text' => 'E Major'],
+                ],
+                'correct_answer' => 'c',
+                'explanation' => 'A Major has three sharps: F#, C#, and G#.',
+            ]);
+
+            $exam->questions()->create([
+                'question_type' => 'multiple_choice',
+                'prompt' => 'In standard 4/4 common time, how many sixteenth notes (semiquavers) constitute the duration of a dotted half note (dotted minim)?',
+                'points' => 20,
+                'order' => 2,
+                'options' => [
+                    ['id' => 'a', 'text' => '8 sixteenth notes'],
+                    ['id' => 'b', 'text' => '10 sixteenth notes'],
+                    ['id' => 'c', 'text' => '12 sixteenth notes'],
+                    ['id' => 'd', 'text' => '16 sixteenth notes'],
+                ],
+                'correct_answer' => 'c',
+                'explanation' => 'A dotted half note equals 3 quarter note beats. Each quarter note contains 4 sixteenth notes (3 x 4 = 12 sixteenth notes).',
+            ]);
+
+            $exam->questions()->create([
+                'question_type' => 'theory',
+                'rubric_id' => $rubric->id,
+                'prompt' => 'Describe the physical and anatomical mechanisms required for relaxed, non-fatiguing octave leaps. Detail the coordination between the shoulder girdle, arm weight release, and the bridge support of the hand arch.',
+                'points' => 30,
+                'order' => 3,
+                'explanation' => 'Answers should address gravity-assisted arm drop, flexible shock-absorbing wrists, and an anchored yet unstiffened hand arch.',
+            ]);
+
+            $exam->questions()->create([
+                'question_type' => 'recorded_performance',
+                'rubric_id' => $rubric->id,
+                'prompt' => 'Record and upload an unedited continuous performance of J.S. Bach\'s Two-Part Invention No. 1 in C Major (BWV 772). Display clear articulation, strict contrapuntal balance between soprano and bass voices, and consistent tempo.',
+                'points' => 30,
+                'order' => 4,
+                'explanation' => 'Evaluated against the Conservatory Assessment Rubric for tone, rhythm, and interpretative clarity.',
+            ]);
+        }
     }
 }

@@ -76,8 +76,10 @@ class InstructorExamGradingController extends Controller
             if ($answer && $answer->media_path) {
                 // Generate signed stream URL for video or audio performance
                 $streamUrl = $this->mediaStreamService->generateSignedLessonStreamUrl(
-                    new class($answer->media_path) {
+                    new class($answer->media_path)
+                    {
                         public function __construct(public string $media_path) {}
+
                         public string $uuid = 'sub';
                     }
                 );

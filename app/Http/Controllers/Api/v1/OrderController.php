@@ -9,6 +9,7 @@ use App\Models\Course;
 use App\Models\Module;
 use App\Models\Order;
 use App\Models\Receipt;
+use App\Models\Setting;
 use App\Services\PricingService;
 use App\Services\SettingsService;
 use Illuminate\Http\JsonResponse;
@@ -60,7 +61,7 @@ class OrderController extends Controller
             ];
         } elseif ($itemType === 'exam_retake_package') {
             $course = Course::findOrFail($itemId);
-            $priceKes = (int) \App\Models\Setting::getValue('exam_retake_package_price_kes', 500000);
+            $priceKes = (int) Setting::getValue('exam_retake_package_price_kes', 500000);
             $title = "Exam Retake Package (3 Additional Attempts): {$course->title}";
             $meta = ['course_id' => $course->id];
         }

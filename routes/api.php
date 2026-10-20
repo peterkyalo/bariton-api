@@ -66,6 +66,10 @@ Route::post('payments/mpesa/callback/{token}', [PaymentController::class, 'mpesa
 Route::post('webhooks/stripe', [PaymentController::class, 'stripeWebhook']);
 Route::post('webhooks/paypal', [PaymentController::class, 'paypalWebhook']);
 
+// Public Certificate Verification (Rate Limited)
+Route::get('certificates/verify/{code}', [CertificateVerificationController::class, 'verify'])
+    ->middleware('throttle:30,1');
+
 // Authenticated Endpoints (Sanctum cookie or token)
 Route::middleware(['auth:sanctum', EnsureUserIsActive::class, EnsureTwoFactorEnabled::class])->group(function () {
     // Auth Session / Token
@@ -108,6 +112,18 @@ Route::middleware(['auth:sanctum', EnsureUserIsActive::class, EnsureTwoFactorEna
         Route::get('modules/{moduleUuid}/assignments', [StudentAssignmentController::class, 'moduleAssignments']);
         Route::get('assignments/{uuid}', [StudentAssignmentController::class, 'show']);
         Route::post('assignments/{uuid}/submit', [StudentAssignmentController::class, 'submit']);
+
+        // Final Exams & Attempts (Phase 4b)
+        Route::get('courses/{courseSlugOrUuid}/exam', [StudentExamController::class, 'showCourseExam']);
+        Route::post('exams/{examUuid}/start', [StudentExamController::class, 'start']);
+        Route::get('exams/attempts/{attemptUuid}', [StudentExamController::class, 'showAttempt']);
+        Route::post('exams/attempts/{attemptUuid}/answers', [StudentExamController::class, 'saveAnswers']);
+        Route::post('exams/attempts/{attemptUuid}/record-stop', [StudentExamController::class, 'recordStop']);
+        Route::post('exams/attempts/{attemptUuid}/submit', [StudentExamController::class, 'submit']);
+
+        // Verifiable Certificates (Phase 4b)
+        Route::get('certificates', [StudentExamController::class, 'certificates']);
+        Route::get('certificates/{uuid}/download', [StudentExamController::class, 'downloadCertificate']);
     });
 
     // Resumable Chunked Uploads
@@ -154,10 +170,20 @@ Route::middleware(['auth:sanctum', EnsureUserIsActive::class, EnsureTwoFactorEna
         Route::get('grading/{uuid}', [InstructorGradingController::class, 'show']);
         Route::post('grading/{uuid}/grade', [InstructorGradingController::class, 'grade']);
         Route::apiResource('rubrics', RubricController::class);
+
+        // Final Exam Grading Studio (Phase 4b)
+        Route::get('exam-grading', [InstructorExamGradingController::class, 'queue']);
+        Route::get('exam-grading/{uuid}', [InstructorExamGradingController::class, 'show']);
+        Route::post('exam-grading/{uuid}/grade', [InstructorExamGradingController::class, 'grade']);
     });
 
     // Admin Endpoints
     Route::prefix('admin')->group(function () {
+        // Certificates Management (Phase 4b)
+        Route::get('certificates', [AdminCertificateController::class, 'index']);
+        Route::post('certificates/{uuid}/revoke', [AdminCertificateController::class, 'revoke']);
+        Route::post('certificates/{uuid}/reissue', [AdminCertificateController::class, 'reissue']);
+
         // Courses
         Route::apiResource('courses', CourseController::class);
 

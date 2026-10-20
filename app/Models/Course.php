@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\LogOptions;
@@ -89,7 +90,7 @@ class Course extends Model
         return $this->hasMany(Enrollment::class);
     }
 
-    public function exam(): \Illuminate\Database\Eloquent\Relations\HasOne
+    public function exam(): HasOne
     {
         return $this->hasOne(Exam::class);
     }

@@ -101,11 +101,11 @@ class CertificateService
 
         $course = $enrollment->course;
         $user = $enrollment->user;
-        $code = 'BMAS-CERT-' . strtoupper(Str::random(8));
+        $code = 'BMAS-CERT-'.strtoupper(Str::random(8));
 
         // Generate QR code SVG
         $verifyBaseUrl = config('services.certificate.verify_base_url', 'https://app.bmas.com/verify');
-        $verifyUrl = rtrim($verifyBaseUrl, '/') . '/' . $code;
+        $verifyUrl = rtrim($verifyBaseUrl, '/').'/'.$code;
 
         $qrCodeSvg = $this->generateQrCodeSvg($verifyUrl);
         $disk = config('filesystems.private_disk', 'local');
@@ -169,10 +169,10 @@ class CertificateService
     public function reissue(Certificate $oldCertificate, User $admin, string $newHolderName, ?string $reason = null): Certificate
     {
         $enrollment = $oldCertificate->enrollment;
-        $newCode = 'BMAS-CERT-' . strtoupper(Str::random(8));
+        $newCode = 'BMAS-CERT-'.strtoupper(Str::random(8));
 
         $verifyBaseUrl = config('services.certificate.verify_base_url', 'https://app.bmas.com/verify');
-        $verifyUrl = rtrim($verifyBaseUrl, '/') . '/' . $newCode;
+        $verifyUrl = rtrim($verifyBaseUrl, '/').'/'.$newCode;
         $qrCodeSvg = $this->generateQrCodeSvg($verifyUrl);
 
         $disk = config('filesystems.private_disk', 'local');
@@ -228,7 +228,7 @@ class CertificateService
     {
         $renderer = new ImageRenderer(
             new RendererStyle(140),
-            new SvgImageBackEnd()
+            new SvgImageBackEnd
         );
         $writer = new Writer($renderer);
 
@@ -249,7 +249,7 @@ class CertificateService
 
             Storage::disk($certificate->pdf_disk ?: 'local')->put($certificate->pdf_path, $pdf->output());
         } catch (\Exception $e) {
-            Log::warning('Certificate PDF rendering notice: ' . $e->getMessage());
+            Log::warning('Certificate PDF rendering notice: '.$e->getMessage());
         }
     }
 }
