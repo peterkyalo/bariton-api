@@ -89,6 +89,16 @@ class Course extends Model
         return $this->hasMany(Enrollment::class);
     }
 
+    public function exam(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(Exam::class);
+    }
+
+    public function certificates(): HasMany
+    {
+        return $this->hasMany(Certificate::class);
+    }
+
     /**
      * Total sum of individual module prices in KES minor units.
      */

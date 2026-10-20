@@ -80,6 +80,16 @@ class Enrollment extends Model
         return $this->hasMany(AssignmentSubmission::class);
     }
 
+    public function examAttempts(): HasMany
+    {
+        return $this->hasMany(ExamAttempt::class);
+    }
+
+    public function certificate(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(Certificate::class);
+    }
+
     public function totalPaidForModulesKes(): int
     {
         return (int) $this->enrollmentModules()->sum('amount_paid_kes');
