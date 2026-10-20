@@ -1,6 +1,6 @@
 # Bariton API State & Architecture
 
-**Current Phase Completed**: Phase 4a (Module assignments, resumable chunked uploads, reusable rubrics & criteria, and instructor grading studio).  
+**Current Phase Completed**: Phase 4b (Comprehensive final exams, debounced autosave, server-enforced timer, performance recording grace periods, attempts, retake packages, and verifiable digital certificates with QR codes).  
 **Last Updated**: October 2026
 
 ---
@@ -14,10 +14,19 @@
 - **Authorization**:
   - Spatie Laravel-Permission with strict permission checks.
   - Controller code never checks role names directly; all authorizations route through Policies and permission middleware (`permission:xyz`).
-- **Audit Logging**: Spatie Activitylog tracking model mutations on `User`, `Course`, `Order`, `RefundRequest`, `CreditNote`, `Assignment`, and `AssignmentSubmission`.
-- **Media Streaming**:
-  - `MediaStreamService` with support for HTTP 206 Partial Content range requests (`Accept-Ranges: bytes`) for smooth audio seeking and progressive video buffering.
-  - Temporary signed routes for both lesson media (`media.lessons.stream`) and student assignment recordings (`media.submissions.stream`).
+- **Audit Logging**: Spatie Activitylog tracking model mutations on `User`, `Course`, `Order`, `RefundRequest`, `CreditNote`, `Assignment`, `AssignmentSubmission`, `Exam`, `ExamAttempt`, and `Certificate`.
+- **Exams & Server-Enforced Countdown (Phase 4b)**:
+  - `ExamService`: Enforces timer server-side against `expires_at`, debounces intermediate auto-saves while student types, and triggers automatic submission if time expires.
+  - Recorded Performance Pause: Freezes timer upon recital video/audio capture and grants a 15-minute grace period (`upload_grace_period_expires_at`) for uploading.
+  - Auto-Grading & Manual Grading: Multiple-choice questions auto-grade immediately. Theory analysis and recorded performances route to `ExamGradingService` for manual rubric evaluation.
+  - Cooling-off Period & Retake Packages: Enforces `exam_wait_time_hours` (default 24h) and `exam_attempt_limit` (default 3). After 3 failed attempts, unlocks only after purchasing an `exam_retake_package` via checkout.
+- **Verifiable Digital Certificates & Public Portal (Phase 4b)**:
+  - `CertificateService`: Issues official certificate after student completes all lessons, passes all assignments, and passes the final exam.
+  - Frozen Holder Name: Stamped at issue time along with course title and unique alphanumeric code (`BMAS-CERT-XXXXXXXX`).
+  - QR Code Generation: Built using `BaconQrCode` to generate clean SVGs pointing to `https://app.bmas.com/verify/{code}` (or local verification route).
+  - Landscape PDF Generation: DomPDF template rendering certificate with dual gold/navy ornate border, signatures, QR code, and dynamic `REVOKED` or `REPLACED` security watermarks.
+  - Public Verification API (`GET /api/v1/certificates/verify/{code}`): Rate limited (`throttle:30,1`) and strictly privacy-preserving (no user ID, email, or personal contact info).
+  - Administrative Revocation & Reissue: Admins revoke with recorded audit reason or reissue after name correction (marking the old code as replaced).
 - **Resumable Chunked Uploads & Assessment Architecture (Phase 4a)**:
   - `ChunkedUploadService`: Resumable binary chunked upload mechanism supporting up to 200MB video uploads, tracking completed chunks, resuming after network failure, and sequentially assembling files.
   - Reusable Rubrics: `Rubric`, `RubricCriterion`, and `RubricLevel` tables allowing instructors to construct reusable conservatory grading templates.
