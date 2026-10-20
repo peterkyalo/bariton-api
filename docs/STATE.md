@@ -1,6 +1,6 @@
 # Bariton API State & Architecture
 
-**Current Phase Completed**: Phase 3b (Card/Stripe in KES, PayPal in USD, and Refunds lifecycle with sequential Credit Notes BMAS-CRN-XXXXXX).  
+**Current Phase Completed**: Phase 4a (Module assignments, resumable chunked uploads, reusable rubrics & criteria, and instructor grading studio).  
 **Last Updated**: October 2026
 
 ---
@@ -14,10 +14,14 @@
 - **Authorization**:
   - Spatie Laravel-Permission with strict permission checks.
   - Controller code never checks role names directly; all authorizations route through Policies and permission middleware (`permission:xyz`).
-- **Audit Logging**: Spatie Activitylog tracking model mutations on `User`, `Course`, `Order`, `RefundRequest`, and `CreditNote`.
+- **Audit Logging**: Spatie Activitylog tracking model mutations on `User`, `Course`, `Order`, `RefundRequest`, `CreditNote`, `Assignment`, and `AssignmentSubmission`.
 - **Media Streaming**:
-  - `MediaStreamService` with support for HTTP 206 Partial Content range requests (`Accept-Ranges: bytes`) for smooth audio streaming and seeking.
-  - Temporary signed routes via `URL::temporarySignedRoute()`.
+  - `MediaStreamService` with support for HTTP 206 Partial Content range requests (`Accept-Ranges: bytes`) for smooth audio seeking and progressive video buffering.
+  - Temporary signed routes for both lesson media (`media.lessons.stream`) and student assignment recordings (`media.submissions.stream`).
+- **Resumable Chunked Uploads & Assessment Architecture (Phase 4a)**:
+  - `ChunkedUploadService`: Resumable binary chunked upload mechanism supporting up to 200MB video uploads, tracking completed chunks, resuming after network failure, and sequentially assembling files.
+  - Reusable Rubrics: `Rubric`, `RubricCriterion`, and `RubricLevel` tables allowing instructors to construct reusable conservatory grading templates.
+  - Grading & Pass/Fail: `AssignmentGradingService` calculates rubric percentage against `enrollment->assignment_pass_mark_percent` (default 70%), transitions status to `graded` (passed) or `resubmission_required` (failed), and tracks attempt numbers.
 - **Payment & Receipt Architecture (Phase 3a & 3b)**:
   - `PaymentGatewayInterface` with driver-based `PaymentManager` resolving `mpesa`, `card` / `stripe`, `paypal`, and `cash`.
   - Stripe Payment Gateway: Charges in KES with 3D Secure 2.0 simulation, idempotent request headers (`Idempotency-Key`), webhook verification (`Stripe-Signature`), and card refund execution.

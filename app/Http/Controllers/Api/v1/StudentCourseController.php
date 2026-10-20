@@ -46,6 +46,7 @@ class StudentCourseController extends Controller
             ->with([
                 'course.instructors',
                 'course.modules.lessons',
+                'course.modules.assignments',
                 'enrollmentModules',
                 'lessonProgress',
             ])

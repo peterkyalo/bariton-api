@@ -62,6 +62,15 @@ class EnrollmentResource extends JsonResource
                 $completedLessons = $lessons->filter(fn ($l) => ($l['progress']['status'] ?? '') === 'completed')->count();
                 $moduleProgress = $totalLessons > 0 ? round(($completedLessons / $totalLessons) * 100) : 0;
 
+                $assignments = $module->relationLoaded('assignments') ? $module->assignments->map(function ($asgn) {
+                    return [
+                        'id' => $asgn->id,
+                        'uuid' => $asgn->uuid,
+                        'title' => $asgn->title,
+                        'submission_type' => $asgn->submission_type,
+                    ];
+                }) : [];
+
                 return [
                     'id' => $module->id,
                     'uuid' => $module->uuid,
@@ -72,6 +81,7 @@ class EnrollmentResource extends JsonResource
                     'is_unlocked' => $isUnlocked,
                     'progress_percent' => $moduleProgress,
                     'lessons' => $lessons,
+                    'assignments' => $assignments,
                 ];
             }),
             'progress_map' => $progressMap,
