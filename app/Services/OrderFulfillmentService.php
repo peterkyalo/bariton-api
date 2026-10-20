@@ -199,6 +199,11 @@ class OrderFulfillmentService
                     ->withProperties(['order_id' => $order->id, 'added_attempts' => 3])
                     ->log('Exam retake package activated (+3 attempts)');
             }
+        } elseif ($item->item_type === 'bootcamp_booking') {
+            $booking = \App\Models\EventBooking::find($item->item_id);
+            if ($booking) {
+                app(\App\Services\EventBookingService::class)->processPaymentConfirmation($booking, $order, $payment);
+            }
         }
     }
 }

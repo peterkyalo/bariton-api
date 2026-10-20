@@ -10,7 +10,10 @@ use App\Http\Controllers\Api\v1\AdminCertificateController;
 use App\Http\Controllers\Api\v1\AuthController;
 use App\Http\Controllers\Api\v1\CertificateVerificationController;
 use App\Http\Controllers\Api\v1\ChunkedUploadController;
+use App\Http\Controllers\Api\v1\CoordinatorEventController;
 use App\Http\Controllers\Api\v1\CourseCatalogController;
+use App\Http\Controllers\Api\v1\EventController;
+use App\Http\Controllers\Api\v1\FinanceEventController;
 use App\Http\Controllers\Api\v1\FinancePaymentController;
 use App\Http\Controllers\Api\v1\InstructorCourseController;
 use App\Http\Controllers\Api\v1\InstructorExamGradingController;
@@ -24,6 +27,7 @@ use App\Http\Controllers\Api\v1\RefundController;
 use App\Http\Controllers\Api\v1\RubricController;
 use App\Http\Controllers\Api\v1\StudentAssignmentController;
 use App\Http\Controllers\Api\v1\StudentCourseController;
+use App\Http\Controllers\Api\v1\StudentEventBookingController;
 use App\Http\Controllers\Api\v1\StudentExamController;
 use App\Http\Middleware\EnsureTwoFactorEnabled;
 use App\Http\Middleware\EnsureUserIsActive;
@@ -56,6 +60,10 @@ Route::get('settings/public', [PublicSettingController::class, 'index'])->middle
 Route::get('courses', [CourseCatalogController::class, 'index']);
 Route::get('courses/{slug}', [CourseCatalogController::class, 'show']);
 Route::get('courses/{slug}/preview/{lessonUuid}', [CourseCatalogController::class, 'preview']);
+
+// Public Physical Events (Phase 6)
+Route::get('events', [EventController::class, 'index']);
+Route::get('events/{slug}', [EventController::class, 'show']);
 
 // Signed Media Streaming
 Route::get('media/lessons/{uuid}', [MediaStreamController::class, 'stream'])->name('media.lessons.stream');
