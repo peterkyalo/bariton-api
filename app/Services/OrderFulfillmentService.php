@@ -9,6 +9,8 @@ use App\Models\EventBooking;
 use App\Models\Module;
 use App\Models\Order;
 use App\Models\Payment;
+use App\Models\StudentTutoringPackage;
+use App\Models\TutoringPackage;
 use App\Services\Receipts\ReceiptIssuerInterface;
 use Illuminate\Support\Facades\DB;
 
@@ -206,10 +208,10 @@ class OrderFulfillmentService
                 app(EventBookingService::class)->processPaymentConfirmation($booking, $order, $payment);
             }
         } elseif ($item->item_type === 'tutoring_package') {
-            $package = \App\Models\TutoringPackage::find($item->item_id);
+            $package = TutoringPackage::find($item->item_id);
             if ($package) {
                 $validityDays = $package->validity_days ?: 60;
-                $studentPackage = \App\Models\StudentTutoringPackage::create([
+                $studentPackage = StudentTutoringPackage::create([
                     'user_id' => $user->id,
                     'order_id' => $order->id,
                     'tutoring_package_id' => $package->id,

@@ -10,6 +10,7 @@ use App\Models\Module;
 use App\Models\Order;
 use App\Models\Receipt;
 use App\Models\Setting;
+use App\Models\TutoringPackage;
 use App\Services\PricingService;
 use App\Services\SettingsService;
 use Illuminate\Http\JsonResponse;
@@ -76,7 +77,7 @@ class OrderController extends Controller
             $title = "Exam Retake Package (3 Additional Attempts): {$course->title}";
             $meta = ['course_id' => $course->id];
         } elseif ($itemType === 'tutoring_package') {
-            $package = \App\Models\TutoringPackage::findOrFail($itemId);
+            $package = TutoringPackage::findOrFail($itemId);
             $priceKes = $package->price_kes;
             $title = "Tutoring Package ({$package->session_count} Sessions): {$package->title}";
             $meta = [

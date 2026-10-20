@@ -1,8 +1,5 @@
 <?php
 
-use App\Models\Course;
-use App\Models\InstructorAvailability;
-use App\Models\InstructorBlockedDate;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\StudentTutoringPackage;
@@ -10,7 +7,6 @@ use App\Models\TutoringPackage;
 use App\Models\TutoringSession;
 use App\Models\User;
 use App\Services\OrderFulfillmentService;
-use App\Services\TutoringBookingService;
 use App\Services\TutoringExpiryService;
 use App\Services\TutoringSlotService;
 use Carbon\Carbon;
@@ -25,6 +21,15 @@ uses(RefreshDatabase::class);
 beforeEach(function () {
     $this->seed(RolesAndPermissionsSeeder::class);
     $this->seed(SettingsSeeder::class);
+
+    $this->package = TutoringPackage::create([
+        'title' => 'Default Tutoring Pack',
+        'slug' => 'default-tutoring-pack',
+        'session_count' => 5,
+        'price_kes' => 2000000,
+        'validity_days' => 60,
+        'is_active' => true,
+    ]);
 });
 
 test('student buys a tutoring package and receives session credits upon payment fulfillment', function () {
@@ -48,7 +53,7 @@ test('student buys a tutoring package and receives session credits upon payment 
     ]);
 
     $orderRes->assertStatus(201);
-    $orderUuid = $orderRes->json('data.uuid');
+    $orderUuid = $orderRes->json('order.uuid');
     $order = Order::where('uuid', $orderUuid)->firstOrFail();
 
     expect($order->total_kes)->toBe(2250000);
@@ -210,7 +215,7 @@ test('rescheduling: requires notice period unless emergency waiver is provided w
 
     $studentPackage = StudentTutoringPackage::create([
         'user_id' => $student->id,
-        'tutoring_package_id' => 1,
+        'tutoring_package_id' => $this->package->id,
         'total_credits' => 3,
         'remaining_credits' => 2,
         'used_credits' => 1,
@@ -271,7 +276,7 @@ test('instructor cancellation restores credit to student and alerts student via 
 
     $package = StudentTutoringPackage::create([
         'user_id' => $student->id,
-        'tutoring_package_id' => 1,
+        'tutoring_package_id' => $this->package->id,
         'total_credits' => 1,
         'remaining_credits' => 0,
         'used_credits' => 1,
@@ -313,7 +318,7 @@ test('tutoring expiry service automatically expires elapsed packages', function 
 
     $expiredPackage = StudentTutoringPackage::create([
         'user_id' => $student->id,
-        'tutoring_package_id' => 1,
+        'tutoring_package_id' => $this->package->id,
         'total_credits' => 5,
         'remaining_credits' => 3,
         'used_credits' => 2,
@@ -323,7 +328,7 @@ test('tutoring expiry service automatically expires elapsed packages', function 
 
     $validPackage = StudentTutoringPackage::create([
         'user_id' => $student->id,
-        'tutoring_package_id' => 1,
+        'tutoring_package_id' => $this->package->id,
         'total_credits' => 5,
         'remaining_credits' => 5,
         'used_credits' => 0,
@@ -350,7 +355,7 @@ test('instructor marks session attendance as attended or missed with instructor 
 
     $studentPackage = StudentTutoringPackage::create([
         'user_id' => $student->id,
-        'tutoring_package_id' => 1,
+        'tutoring_package_id' => $this->package->id,
         'total_credits' => 1,
         'remaining_credits' => 0,
         'used_credits' => 1,
