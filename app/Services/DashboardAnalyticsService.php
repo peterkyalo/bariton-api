@@ -40,21 +40,21 @@ class DashboardAnalyticsService
         [$startDate, $endDate] = $this->resolveDates($from, $to);
 
         // 1. Revenue by Method
-        $revenueByMethod = Payment::where('status', 'completed')
+        $revenueByMethod = Payment::whereIn('status', ['successful', 'completed'])
             ->whereBetween('created_at', [$startDate, $endDate])
-            ->select('payment_method', DB::raw('SUM(amount_kes) as total_kes'), DB::raw('COUNT(*) as count'))
-            ->groupBy('payment_method')
+            ->select('gateway as payment_method', DB::raw('SUM(amount_kes) as total_kes'), DB::raw('COUNT(*) as count'))
+            ->groupBy('gateway')
             ->get()
             ->keyBy('payment_method')
             ->toArray();
 
-        $totalRevenueKes = Payment::where('status', 'completed')
+        $totalRevenueKes = Payment::whereIn('status', ['successful', 'completed'])
             ->whereBetween('created_at', [$startDate, $endDate])
             ->sum('amount_kes');
 
         // 2. Revenue by Item Type
         $revenueByItemType = OrderItem::join('orders', 'order_items.order_id', '=', 'orders.id')
-            ->where('orders.status', 'completed')
+            ->whereIn('orders.status', ['paid', 'completed'])
             ->whereBetween('orders.created_at', [$startDate, $endDate])
             ->select('order_items.item_type', DB::raw('SUM(order_items.price_kes) as total_kes'), DB::raw('COUNT(*) as count'))
             ->groupBy('order_items.item_type')
@@ -150,17 +150,17 @@ class DashboardAnalyticsService
             ->take(20)
             ->get();
 
-        $totalCompleted = Payment::where('status', 'completed')
+        $totalCompleted = Payment::whereIn('status', ['successful', 'completed'])
             ->whereBetween('created_at', [$startDate, $endDate])
             ->sum('amount_kes');
 
         // Cash Entries
-        $cashEntriesCount = Payment::where('payment_method', 'cash')
+        $cashEntriesCount = Payment::where('gateway', 'cash')
             ->whereBetween('created_at', [$startDate, $endDate])
             ->count();
 
-        $cashTotalKes = Payment::where('payment_method', 'cash')
-            ->where('status', 'completed')
+        $cashTotalKes = Payment::where('gateway', 'cash')
+            ->whereIn('status', ['successful', 'completed'])
             ->whereBetween('created_at', [$startDate, $endDate])
             ->sum('amount_kes');
 
@@ -182,7 +182,7 @@ class DashboardAnalyticsService
         $creditNotesAmount = $creditNotes->sum('amount_kes');
 
         // Daily Totals (last 14 or date range)
-        $dailyTotals = Payment::where('status', 'completed')
+        $dailyTotals = Payment::whereIn('status', ['successful', 'completed'])
             ->whereBetween('created_at', [$startDate, $endDate])
             ->select(DB::raw('DATE(created_at) as date'), DB::raw('SUM(amount_kes) as total_kes'), DB::raw('COUNT(*) as transaction_count'))
             ->groupBy(DB::raw('DATE(created_at)'))
@@ -359,11 +359,11 @@ class DashboardAnalyticsService
 
         foreach ($payments as $p) {
             fputcsv($out, [
-                $p->provider_payment_id ?? $p->order_id,
+                $p->reference ?? $p->provider_payment_id ?? $p->order_id,
                 $p->receipt ? $p->receipt->receipt_number : 'N/A',
                 $p->created_at->toDateTimeString(),
                 $p->order && $p->order->user ? $p->order->user->name : 'Unknown',
-                strtoupper($p->payment_method),
+                strtoupper($p->gateway ?? $p->payment_method ?? 'UNKNOWN'),
                 $p->amount_kes / 100,
                 strtoupper($p->status),
             ]);

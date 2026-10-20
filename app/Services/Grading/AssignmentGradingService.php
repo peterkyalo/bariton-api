@@ -18,7 +18,7 @@ class AssignmentGradingService
         $scoresData = $data['rubric_scores'] ?? []; // array of [ 'criterion_id' => x, 'level_id' => y, 'comments' => ... ]
         $generalFeedback = $data['feedback'] ?? '';
 
-        return DB::transaction(function () use ($submission, $instructor, $rubric, $scoresData, $generalFeedback) {
+        return DB::transaction(function () use ($submission, $instructor, $rubric, $scoresData, $generalFeedback, $data) {
             $totalEarned = 0;
             $totalPossible = 0;
 
