@@ -2,9 +2,7 @@
 
 namespace App\Http\Requests;
 
-use App\Services\PricingService;
 use Illuminate\Foundation\Http\FormRequest;
-use InvalidArgumentException;
 
 class CreateCourseRequest extends FormRequest
 {

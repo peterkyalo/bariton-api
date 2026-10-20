@@ -1,13 +1,18 @@
 <?php
 
 use App\Http\Controllers\Api\v1\Admin\ActivityLogController;
+use App\Http\Controllers\Api\v1\Admin\CourseController;
 use App\Http\Controllers\Api\v1\Admin\NotificationLogController;
 use App\Http\Controllers\Api\v1\Admin\RoleController;
 use App\Http\Controllers\Api\v1\Admin\SettingController;
 use App\Http\Controllers\Api\v1\Admin\UserController;
 use App\Http\Controllers\Api\v1\AuthController;
+use App\Http\Controllers\Api\v1\CourseCatalogController;
+use App\Http\Controllers\Api\v1\InstructorCourseController;
+use App\Http\Controllers\Api\v1\MediaStreamController;
 use App\Http\Controllers\Api\v1\ProfileController;
 use App\Http\Controllers\Api\v1\PublicSettingController;
+use App\Http\Controllers\Api\v1\StudentCourseController;
 use App\Http\Middleware\EnsureTwoFactorEnabled;
 use App\Http\Middleware\EnsureUserIsActive;
 use Illuminate\Support\Facades\Route;
@@ -34,6 +39,14 @@ Route::prefix('auth')->group(function () {
 
 Route::post('guardian/confirm', [AuthController::class, 'confirmGuardian'])->middleware('throttle:10,1');
 Route::get('settings/public', [PublicSettingController::class, 'index'])->middleware('throttle:60,1');
+
+// Public Course Catalog & Preview
+Route::get('courses', [CourseCatalogController::class, 'index']);
+Route::get('courses/{slug}', [CourseCatalogController::class, 'show']);
+Route::get('courses/{slug}/preview/{lessonUuid}', [CourseCatalogController::class, 'preview']);
+
+// Signed Media Streaming
+Route::get('media/lessons/{uuid}', [MediaStreamController::class, 'stream'])->name('media.lessons.stream');
 
 // Authenticated Endpoints (Sanctum cookie or token)
 Route::middleware(['auth:sanctum', EnsureUserIsActive::class, EnsureTwoFactorEnabled::class])->group(function () {
@@ -63,8 +76,31 @@ Route::middleware(['auth:sanctum', EnsureUserIsActive::class, EnsureTwoFactorEna
     Route::post('me/deletion-request', [ProfileController::class, 'requestDeletion']);
     Route::delete('me/deletion-request', [ProfileController::class, 'cancelDeletion']);
 
+    // Student Learning & Progress
+    Route::prefix('student')->group(function () {
+        Route::get('enrollments', [StudentCourseController::class, 'enrollments']);
+        Route::get('enrollments/{uuid}', [StudentCourseController::class, 'enrollmentDetail']);
+        Route::get('lessons/{uuid}', [StudentCourseController::class, 'lessonDetail']);
+        Route::post('lessons/{uuid}/progress', [StudentCourseController::class, 'recordProgress']);
+    });
+
+    // Instructor Course Management
+    Route::prefix('instructor')->group(function () {
+        Route::get('courses', [InstructorCourseController::class, 'index']);
+        Route::get('courses/{course}', [InstructorCourseController::class, 'show']);
+        Route::post('courses/{course}/modules', [InstructorCourseController::class, 'createModule']);
+        Route::put('modules/{module}', [InstructorCourseController::class, 'updateModule']);
+        Route::delete('modules/{module}', [InstructorCourseController::class, 'deleteModule']);
+        Route::post('modules/{module}/lessons', [InstructorCourseController::class, 'createLesson']);
+        Route::put('lessons/{lesson}', [InstructorCourseController::class, 'updateLesson']);
+        Route::delete('lessons/{lesson}', [InstructorCourseController::class, 'deleteLesson']);
+    });
+
     // Admin Endpoints
     Route::prefix('admin')->group(function () {
+        // Courses
+        Route::apiResource('courses', CourseController::class);
+
         // Users
         Route::get('users', [UserController::class, 'index']);
         Route::post('users', [UserController::class, 'store']);

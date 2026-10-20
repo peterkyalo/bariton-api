@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\RecordLessonProgressRequest;
 use App\Http\Resources\EnrollmentResource;
 use App\Http\Resources\LessonResource;
-use App\Models\Enrollment;
 use App\Models\Lesson;
 use App\Services\CourseProgressService;
 use Illuminate\Http\JsonResponse;

@@ -2,7 +2,6 @@
 
 namespace App\Policies;
 
-use App\Models\Course;
 use App\Models\Lesson;
 use App\Models\Module;
 use App\Models\User;

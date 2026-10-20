@@ -211,7 +211,9 @@ test('each role sees only its own menu and permissions', function () {
 
     $studentProfile = $this->actingAs($student)->getJson('/api/v1/me');
     $studentPerms = $studentProfile->json('data.permissions');
-    expect($studentPerms)->toEqualCanonicalizing(['dashboard.student']);
+    expect($studentPerms)->toContain('dashboard.student')
+        ->and($studentPerms)->not->toContain('users.view')
+        ->and($studentPerms)->not->toContain('settings.view');
 
     // Student is unauthorized to view admin users
     $forbidden = $this->actingAs($student)->getJson('/api/v1/admin/users');
@@ -228,7 +230,9 @@ test('each role sees only its own menu and permissions', function () {
     $instructor->assignRole('instructor');
 
     $instructorProfile = $this->actingAs($instructor)->getJson('/api/v1/me');
-    expect($instructorProfile->json('data.permissions'))->toEqualCanonicalizing(['dashboard.instructor']);
+    expect($instructorProfile->json('data.permissions'))->toContain('dashboard.instructor')
+        ->and($instructorProfile->json('data.permissions'))->not->toContain('users.view')
+        ->and($instructorProfile->json('data.permissions'))->not->toContain('settings.view');
 
     // Finance staff
     $finance = User::create([

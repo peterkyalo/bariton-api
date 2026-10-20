@@ -88,6 +88,7 @@ class CourseProgressService
 
         if ($totalLessons === 0) {
             $enrollment->update(['progress_percent' => 0.00]);
+
             return;
         }
 

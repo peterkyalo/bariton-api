@@ -110,6 +110,7 @@ class Course extends Model
 
         if ($this->bundle_discount_type === 'percent') {
             $discount = (int) round($sum * ($this->bundle_discount_value / 100));
+
             return max(0, $sum - $discount);
         }
 

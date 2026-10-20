@@ -57,6 +57,7 @@ class PricingService
 
         if ($discountType === 'percent') {
             $discount = (int) round($totalModulesPriceKes * ($discountValue / 100));
+
             return max(0, $totalModulesPriceKes - $discount);
         }
 
@@ -84,6 +85,7 @@ class PricingService
             if ($discountValue > 0) {
                 throw new InvalidArgumentException('Cannot apply a bundle discount to a course with no module pricing.');
             }
+
             return;
         }
 
