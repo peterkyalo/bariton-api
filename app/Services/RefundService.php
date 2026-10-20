@@ -223,14 +223,14 @@ class RefundService
                 if ($courseId) {
                     $enrollment = Enrollment::where('user_id', $user->id)->where('course_id', $courseId)->first();
                     if ($enrollment) {
-                        $this->progressService->calculateProgress($enrollment);
+                        $this->progressService->recalculateEnrollmentProgress($enrollment);
                     }
                 }
             } elseif ($item->item_type === 'course_bundle' || $item->item_type === 'bundle_upgrade') {
                 $courseId = $item->item_id;
                 $enrollment = Enrollment::where('user_id', $user->id)->where('course_id', $courseId)->first();
                 if ($enrollment) {
-                    $enrollment->modules()->delete();
+                    $enrollment->enrollmentModules()->delete();
                     $enrollment->update(['status' => 'cancelled', 'progress_percent' => 0.00]);
                 }
             }
@@ -244,7 +244,7 @@ class RefundService
                 } elseif ($orderItem->item_type === 'course_bundle' || $orderItem->item_type === 'bundle_upgrade') {
                     $enrollment = Enrollment::where('user_id', $user->id)->where('course_id', $orderItem->item_id)->first();
                     if ($enrollment) {
-                        $enrollment->modules()->delete();
+                        $enrollment->enrollmentModules()->delete();
                         $enrollment->update(['status' => 'cancelled', 'progress_percent' => 0.00]);
                     }
                 }
