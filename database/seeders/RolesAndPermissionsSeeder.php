@@ -22,6 +22,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'settings.update',
             'activity-log.view',
             'notifications.view',
+            'notifications.manage',
             'dashboard.admin',
             'dashboard.instructor',
             'dashboard.student',

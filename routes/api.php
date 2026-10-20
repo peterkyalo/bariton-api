@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\v1\Admin\ActivityLogController;
 use App\Http\Controllers\Api\v1\Admin\CourseController;
 use App\Http\Controllers\Api\v1\Admin\NotificationLogController;
+use App\Http\Controllers\Api\v1\Admin\NotificationTemplateController;
 use App\Http\Controllers\Api\v1\Admin\RoleController;
 use App\Http\Controllers\Api\v1\Admin\SettingController;
 use App\Http\Controllers\Api\v1\Admin\UserController;
@@ -12,9 +13,12 @@ use App\Http\Controllers\Api\v1\CertificateVerificationController;
 use App\Http\Controllers\Api\v1\ChunkedUploadController;
 use App\Http\Controllers\Api\v1\CoordinatorEventController;
 use App\Http\Controllers\Api\v1\CourseCatalogController;
+use App\Http\Controllers\Api\v1\DashboardController;
 use App\Http\Controllers\Api\v1\EventController;
 use App\Http\Controllers\Api\v1\FinanceEventController;
 use App\Http\Controllers\Api\v1\FinancePaymentController;
+use App\Http\Controllers\Api\v1\HealthCheckController;
+use App\Http\Controllers\Api\v1\StudentNotificationPreferenceController;
 use App\Http\Controllers\Api\v1\InstructorCourseController;
 use App\Http\Controllers\Api\v1\InstructorExamGradingController;
 use App\Http\Controllers\Api\v1\InstructorGradingController;
@@ -58,6 +62,7 @@ Route::prefix('auth')->group(function () {
 
 Route::post('guardian/confirm', [AuthController::class, 'confirmGuardian'])->middleware('throttle:10,1');
 Route::get('settings/public', [PublicSettingController::class, 'index'])->middleware('throttle:60,1');
+Route::get('health', [HealthCheckController::class, 'check']);
 
 // Public Course Catalog & Preview
 Route::get('courses', [CourseCatalogController::class, 'index']);
@@ -152,6 +157,10 @@ Route::middleware(['auth:sanctum', EnsureUserIsActive::class, EnsureTwoFactorEna
         Route::post('tutoring/book', [StudentTutoringController::class, 'book']);
         Route::get('tutoring/sessions', [StudentTutoringController::class, 'mySessions']);
         Route::post('tutoring/sessions/{uuid}/reschedule', [StudentTutoringController::class, 'reschedule']);
+
+        // Notification Preferences (Phase 8)
+        Route::get('notification-preferences', [StudentNotificationPreferenceController::class, 'show']);
+        Route::put('notification-preferences', [StudentNotificationPreferenceController::class, 'update']);
     });
 
     // Event Online Holds & Waitlists (Phase 6)
@@ -270,5 +279,21 @@ Route::middleware(['auth:sanctum', EnsureUserIsActive::class, EnsureTwoFactorEna
         Route::get('activity-log', [ActivityLogController::class, 'index']);
         Route::get('notification-logs', [NotificationLogController::class, 'index']);
         Route::post('test-sms', [NotificationLogController::class, 'testSms']);
+
+        // Notification Templates (Phase 8)
+        Route::get('notification-templates', [NotificationTemplateController::class, 'index']);
+        Route::get('notification-templates/{key}', [NotificationTemplateController::class, 'show']);
+        Route::put('notification-templates/{key}', [NotificationTemplateController::class, 'update']);
+        Route::post('notification-templates/{key}/test-send', [NotificationTemplateController::class, 'testSend']);
+    });
+
+    // Multi-Role Dashboards & Reports (Phase 8)
+    Route::prefix('dashboards')->group(function () {
+        Route::get('admin', [DashboardController::class, 'admin'])->middleware('permission:dashboard.admin');
+        Route::get('admin/export-csv', [DashboardController::class, 'adminCsv'])->middleware('permission:dashboard.admin');
+        Route::get('finance', [DashboardController::class, 'finance'])->middleware('permission:dashboard.finance');
+        Route::get('finance/export-csv', [DashboardController::class, 'financeCsv'])->middleware('permission:dashboard.finance');
+        Route::get('instructor', [DashboardController::class, 'instructor'])->middleware('permission:dashboard.instructor');
+        Route::get('coordinator', [DashboardController::class, 'coordinator'])->middleware('permission:dashboard.coordinator');
     });
 });
