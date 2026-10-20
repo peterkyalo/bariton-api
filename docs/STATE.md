@@ -1,6 +1,6 @@
 # Bariton API State & Architecture
 
-**Current Phase Completed**: Phase 2 (Courses, modules, levels, pricing and lessons).
+**Current Phase Completed**: Phase 3a (Orders, Cash & M-Pesa payments, order checkout, gapless sequential numbered PDF receipts, finance reception).  
 **Last Updated**: October 2026
 
 ---
@@ -14,10 +14,15 @@
 - **Authorization**:
   - Spatie Laravel-Permission with strict permission checks.
   - Controller code never checks role names directly; all authorizations route through Policies and permission middleware (`permission:xyz`).
-- **Audit Logging**: Spatie Activitylog tracking model mutations on `User` and `Course`.
+- **Audit Logging**: Spatie Activitylog tracking model mutations on `User`, `Course`, and `Order`.
 - **Media Streaming**:
   - `MediaStreamService` with support for HTTP 206 Partial Content range requests (`Accept-Ranges: bytes`) for smooth audio streaming and seeking.
   - Temporary signed routes via `URL::temporarySignedRoute()`.
+- **Payment & Receipt Architecture (Phase 3a)**:
+  - `PaymentGatewayInterface` with driver-based `PaymentManager` resolving `mpesa`, `cash`, etc.
+  - Safaricom Daraja STK Push with tokenized callback verification and `QueryPendingMpesaPaymentsJob` fallback reconciler.
+  - Sequential Receipt Generation (`StandardPdfReceiptIssuer`): Uses `DB::table('receipt_counters')->where('key', 'main')->lockForUpdate()` inside database transactions to guarantee strictly gapless sequential receipt numbers (`BMAS-RCT-000001`, `BMAS-RCT-000002`, ...).
+  - DOMPDF receipt rendering (`barryvdh/laravel-dompdf`) saved to private storage disk.
 
 ---
 
@@ -33,7 +38,7 @@
 
 ---
 
-## 3. Flagship Seeded Course Data (Phase 2)
+## 3. Flagship Seeded Course Data
 - **Course**: "Classical Piano Mastery" (`slug`: `classical-piano-mastery`)
   - Status: `published`, Instructor: `instructor@bmas.com`
   - Bundle Discount: `percent`, `15%`
@@ -62,11 +67,23 @@
   - `GET /api/v1/courses/{slug}/preview/{lessonUuid}`: Free preview lesson data.
 - **Media Streaming**:
   - `GET /api/v1/media/lessons/{uuid}`: Signed streaming endpoint supporting HTTP 206 range requests for audio and downloads for PDF.
-- **Student Learning**:
+- **Orders & Payments (Phase 3a)**:
+  - `POST /api/v1/orders`: Create an order snapshotting VAT rate, exchange rate, and setting expiry.
+  - `GET /api/v1/orders/{uuid}`: Order details with items and payment status.
+  - `POST /api/v1/orders/{uuid}/pay/mpesa`: Dispatch Safaricom M-Pesa STK push prompt.
+  - `GET /api/v1/orders/{uuid}/status`: Poll order payment status (`paid`, `pending`, `expired`).
+  - `POST /api/v1/payments/mpesa/callback/{token}`: Public webhook for Daraja STK Push callbacks with secret token.
+- **Student Learning & Orders**:
   - `GET /api/v1/student/enrollments`: Active enrollments list.
   - `GET /api/v1/student/enrollments/{uuid}`: Curriculum tree with accessible/locked flags.
   - `GET /api/v1/student/lessons/{uuid}`: Specific lesson player data.
-  - `POST /api/v1/student/lessons/{uuid}/progress`: Record completion (YouTube 90%, Audio 90%, PDF mark complete).
+  - `POST /api/v1/student/lessons/{uuid}/progress`: Record completion.
+  - `GET /api/v1/student/orders`: Student order history with receipt links.
+  - `GET /api/v1/student/receipts/{uuid}/download`: Download sequential stamped PDF receipt.
+- **Finance Staff Operations**:
+  - `GET /api/v1/finance/orders`: Search pending orders by customer name, order number, or email.
+  - `POST /api/v1/finance/cash-payment`: Record office cash payment, fulfill order, and issue sequential receipt.
+  - `GET /api/v1/finance/payments`: Complete payment ledger across all gateways.
 - **Instructor Course Management**:
   - `GET /api/v1/instructor/courses`: Assigned courses.
   - `GET /api/v1/instructor/courses/{course}`: Course syllabus.
@@ -82,15 +99,13 @@
 ## 5. Decisions & Rules Enforced
 1. **Integer Minor Units**: All money amounts stored as integer minor units in KES (e.g. `500000` = KES 5,000.00).
 2. **USD Exchange Conversion**: Stored rate from settings (`usd_exchange_rate = 130.00`). Formula: `ceil(kesMinor / exchangeRate)` in cents, rounded up to the next whole cent.
-3. **Bundle Discount Rule**: Discounts that make the bundle price zero or equal/greater than the module sum are strictly rejected during course creation, update, and module price changes.
-4. **Upgrade Pricing**: `max(0, bundle_price_kes - total_paid_for_owned_modules_kes)`.
-5. **Progress Auto-Completion**:
-   - YouTube: auto-completes when >= 90% watched.
-   - Audio: auto-completes when >= 90% played.
-   - PDF: student manual mark complete.
-   - Course and module progress percentages dynamically recalculated and saved.
+3. **VAT Rate Snapshotting**: Stored from settings (`vat_rate_percent = 16.00`). Price includes VAT: `vat_kes = round(price * (rate / (100 + rate)))`.
+4. **Consecutive Receipts**: Enforced strictly via `DB::table('receipt_counters')->where('key', 'main')->lockForUpdate()` within transactions.
+5. **Order Expiry**: Pending orders expire after `order_expiry_minutes` (default 30 mins) configured in system settings.
+6. **Access Control**: Enrollment and modules remain strictly locked until order status transitions to `paid`.
 
 ---
 
-## 6. Known Gaps / Next Phase (Phase 3)
-- Order checkout and payment gateways (M-Pesa STK Push, Cash entry, Stripe test mode, and sequential receipt issuing).
+## 6. Known Gaps / Next Phase (Phase 3b)
+- International card payments via Stripe (test mode elements, webhooks, 3D Secure).
+- Multi-currency currency switcher (KES/USD) and card checkout.
