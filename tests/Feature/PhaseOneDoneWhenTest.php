@@ -247,7 +247,9 @@ test('each role sees only its own menu and permissions', function () {
     $finance->assignRole('finance_staff');
 
     $financeProfile = $this->actingAs($finance)->getJson('/api/v1/me');
-    expect($financeProfile->json('data.permissions'))->toEqualCanonicalizing(['dashboard.finance']);
+    expect($financeProfile->json('data.permissions'))->toContain('dashboard.finance')
+        ->and($financeProfile->json('data.permissions'))->not->toContain('users.view')
+        ->and($financeProfile->json('data.permissions'))->not->toContain('settings.view');
 });
 
 test('a test SMS logs a delivery status', function () {

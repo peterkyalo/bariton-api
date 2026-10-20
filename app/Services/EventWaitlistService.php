@@ -110,7 +110,7 @@ class EventWaitlistService
             $order->items()->create([
                 'item_type' => 'bootcamp_booking',
                 'item_id' => $booking->id,
-                'title' => "{$lockedEvent->title} (Waitlist Offer: " . ($bookingType === 'training_and_accommodation' ? 'Training + Accommodation' : 'Training Only') . ')',
+                'title' => "{$lockedEvent->title} (Waitlist Offer: ".($bookingType === 'training_and_accommodation' ? 'Training + Accommodation' : 'Training Only').')',
                 'price_kes' => $totalFee,
                 'vat_kes' => 0,
                 'meta' => [

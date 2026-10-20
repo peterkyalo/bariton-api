@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\EnrollmentModule;
+use App\Models\EventBooking;
 use App\Models\Module;
 use App\Models\Order;
 use App\Models\Payment;
@@ -200,9 +201,9 @@ class OrderFulfillmentService
                     ->log('Exam retake package activated (+3 attempts)');
             }
         } elseif ($item->item_type === 'bootcamp_booking') {
-            $booking = \App\Models\EventBooking::find($item->item_id);
+            $booking = EventBooking::find($item->item_id);
             if ($booking) {
-                app(\App\Services\EventBookingService::class)->processPaymentConfirmation($booking, $order, $payment);
+                app(EventBookingService::class)->processPaymentConfirmation($booking, $order, $payment);
             }
         }
     }

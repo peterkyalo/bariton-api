@@ -15,7 +15,6 @@ use App\Services\Receipts\CreditNoteIssuerInterface;
 use Exception;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 
@@ -133,7 +132,7 @@ class EventRefundService
 
             $refundRef = null;
             if (in_array($payment->gateway, ['cash', 'mpesa'])) {
-                $refundRef = 'AUTO-UNSEATED-' . strtoupper(Str::random(10));
+                $refundRef = 'AUTO-UNSEATED-'.strtoupper(Str::random(10));
             } else {
                 $gateway = $this->paymentManager->gateway($payment->gateway);
                 $result = $gateway->refund($payment, $amountKes, 'Automatic refund for unseated booking due to expired hold.');
@@ -192,7 +191,7 @@ class EventRefundService
 
             if ($payment) {
                 if (in_array($payment->gateway, ['cash', 'mpesa'])) {
-                    $refundRef = $manualReference ?: 'MAN-REF-' . strtoupper(Str::random(10));
+                    $refundRef = $manualReference ?: 'MAN-REF-'.strtoupper(Str::random(10));
                 } else {
                     $gateway = $this->paymentManager->gateway($payment->gateway);
                     $result = $gateway->refund($payment, $refundRequest->amount_kes, $refundRequest->reason);
@@ -202,7 +201,7 @@ class EventRefundService
                     $refundRef = $result->reference;
                 }
             } else {
-                $refundRef = $manualReference ?: 'REF-' . strtoupper(Str::random(10));
+                $refundRef = $manualReference ?: 'REF-'.strtoupper(Str::random(10));
             }
 
             if ($booking) {
