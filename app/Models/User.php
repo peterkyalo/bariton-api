@@ -160,4 +160,16 @@ class User extends Authenticatable implements MustVerifyEmail
 
         $this->update($updates);
     }
+
+    public function coursesTeaching(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Course::class, 'course_user')
+            ->withPivot('is_primary')
+            ->withTimestamps();
+    }
+
+    public function enrollments(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Enrollment::class);
+    }
 }
