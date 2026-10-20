@@ -54,7 +54,9 @@ class OrderFulfillmentService
 
         if ($item->item_type === 'course_bundle') {
             $course = Course::with('modules')->find($item->item_id);
-            if (! $course) return;
+            if (! $course) {
+                return;
+            }
 
             $enrollment = Enrollment::firstOrCreate(
                 [
@@ -83,7 +85,9 @@ class OrderFulfillmentService
             }
         } elseif ($item->item_type === 'module') {
             $module = Module::with('course')->find($item->item_id);
-            if (! $module || ! $module->course) return;
+            if (! $module || ! $module->course) {
+                return;
+            }
 
             $enrollment = Enrollment::firstOrCreate(
                 [
@@ -109,7 +113,9 @@ class OrderFulfillmentService
             );
         } elseif ($item->item_type === 'bundle_upgrade') {
             $course = Course::with('modules')->find($item->item_id);
-            if (! $course) return;
+            if (! $course) {
+                return;
+            }
 
             $enrollment = Enrollment::firstOrCreate(
                 [

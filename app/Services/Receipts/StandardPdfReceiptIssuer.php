@@ -6,6 +6,7 @@ use App\Models\Payment;
 use App\Models\Receipt;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -62,7 +63,7 @@ class StandardPdfReceiptIssuer implements ReceiptIssuerInterface
             $pdf = Pdf::loadView('receipts.pdf', ['receipt' => $receipt]);
             Storage::disk($disk)->put($pdfPath, $pdf->output());
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::warning('Receipt PDF generation notice: '.$e->getMessage());
+            Log::warning('Receipt PDF generation notice: '.$e->getMessage());
         }
 
         return $receipt;

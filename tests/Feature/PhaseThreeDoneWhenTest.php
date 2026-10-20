@@ -13,6 +13,7 @@ use App\Models\User;
 use App\Services\OrderFulfillmentService;
 use App\Services\Payments\MpesaPaymentGateway;
 use App\Services\Receipts\ReceiptIssuerInterface;
+use App\Services\SettingsService;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Database\Seeders\SettingsSeeder;
 use Illuminate\Support\Facades\DB;
@@ -63,13 +64,8 @@ test('an mpesa sandbox payment completes via callback, grants access, and issues
 
     // 1. Student creates an order for the full course bundle
     $orderResponse = $this->actingAs($student)->postJson('/api/v1/orders', [
-        'items' => [
-            [
-                'item_type' => 'course_bundle',
-                'item_id' => $course->id,
-            ],
-        ],
-        'currency' => 'KES',
+        'item_type' => 'course_bundle',
+        'item_id' => $course->id,
     ]);
 
     $orderResponse->assertCreated()
@@ -83,7 +79,7 @@ test('an mpesa sandbox payment completes via callback, grants access, and issues
     expect($enrollment)->toBeNull();
 
     // 2. Student initiates M-Pesa STK push
-    $initResponse = $this->actingAs($student)->postJson("/api/v1/payments/mpesa/{$orderUuid}", [
+    $initResponse = $this->actingAs($student)->postJson("/api/v1/orders/{$orderUuid}/pay/mpesa", [
         'phone' => '0712345678',
     ]);
 
@@ -199,7 +195,7 @@ test('query job confirms mpesa payment when callback never arrives', function ()
     ]);
 
     // Run background query job
-    $job = new QueryPendingMpesaPaymentsJob();
+    $job = new QueryPendingMpesaPaymentsJob;
     $job->handle(app(MpesaPaymentGateway::class), app(OrderFulfillmentService::class));
 
     $order->refresh();
@@ -238,6 +234,7 @@ test('a cash receipt appears only after finance records payment', function () {
         'total_kes' => 720000,
         'vat_kes' => 99310,
         'vat_rate_percent' => 16.00,
+        'total_usd_cents' => 5538,
         'currency' => 'KES',
         'expires_at' => now()->addMinutes(30),
     ]);
@@ -249,13 +246,15 @@ test('a cash receipt appears only after finance records payment', function () {
         'price_kes' => 720000,
     ]);
 
-    // Student checks receipts - none exists
-    $studentReceipts = $this->actingAs($student)->getJson('/api/v1/orders/receipts');
-    $studentReceipts->assertOk()
-        ->assertJsonCount(0, 'data');
+    // Student checks orders list - order has no receipt yet
+    $studentOrders = $this->actingAs($student)->getJson('/api/v1/student/orders');
+    $studentOrders->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.status', 'pending')
+        ->assertJsonPath('data.0.receipt', null);
 
     // Finance records the cash payment
-    $recordResponse = $this->actingAs($finance)->postJson('/api/v1/finance/orders/cash-payment', [
+    $recordResponse = $this->actingAs($finance)->postJson('/api/v1/finance/cash-payment', [
         'order_id' => $order->id,
         'amount_kes' => 720000,
         'payer_name' => 'Alice Parent',
@@ -271,11 +270,12 @@ test('a cash receipt appears only after finance records payment', function () {
     expect($receipt)->not->toBeNull();
     expect($receipt->amount_kes)->toBe(720000);
 
-    // Student can now download/see their receipt
-    $studentReceiptsAfter = $this->actingAs($student)->getJson('/api/v1/orders/receipts');
-    $studentReceiptsAfter->assertOk()
+    // Student can now see receipt in their orders
+    $studentOrdersAfter = $this->actingAs($student)->getJson('/api/v1/student/orders');
+    $studentOrdersAfter->assertOk()
         ->assertJsonCount(1, 'data')
-        ->assertJsonPath('data.0.receipt_number', $receipt->receipt_number);
+        ->assertJsonPath('data.0.status', 'paid')
+        ->assertJsonPath('data.0.receipt.receipt_number', $receipt->receipt_number);
 });
 
 test('two payments confirmed receive consecutive receipt numbers with no gaps', function () {
@@ -290,6 +290,7 @@ test('two payments confirmed receive consecutive receipt numbers with no gaps', 
         'status' => 'pending',
         'total_kes' => 300000,
         'vat_kes' => 41379,
+        'total_usd_cents' => 2308,
         'currency' => 'KES',
     ]);
 
@@ -298,6 +299,7 @@ test('two payments confirmed receive consecutive receipt numbers with no gaps', 
         'status' => 'pending',
         'total_kes' => 500000,
         'vat_kes' => 68966,
+        'total_usd_cents' => 3846,
         'currency' => 'KES',
     ]);
 
@@ -344,6 +346,7 @@ test('access is granted only after an order is marked paid', function () {
         'status' => 'pending',
         'total_kes' => 300000,
         'vat_kes' => 41379,
+        'total_usd_cents' => 2308,
         'currency' => 'KES',
     ]);
 
@@ -380,7 +383,11 @@ test('access is granted only after an order is marked paid', function () {
 
 test('unpaid orders expire after the duration set in settings', function () {
     // Setting order_expiry_minutes = 30
-    Setting::set('order_expiry_minutes', 30, 'number', 'orders');
+    Setting::updateOrCreate(
+        ['key' => 'order_expiry_minutes'],
+        ['value' => 30, 'type' => 'integer', 'group' => 'orders']
+    );
+    app(SettingsService::class)->clearCache();
 
     $student = User::factory()->create();
     $student->assignRole('student');
@@ -389,9 +396,8 @@ test('unpaid orders expire after the duration set in settings', function () {
 
     // Create order via API to trigger expiry calculation
     $response = $this->actingAs($student)->postJson('/api/v1/orders', [
-        'items' => [
-            ['item_type' => 'course_bundle', 'item_id' => $course->id],
-        ],
+        'item_type' => 'course_bundle',
+        'item_id' => $course->id,
     ]);
 
     $response->assertCreated();
@@ -407,7 +413,7 @@ test('unpaid orders expire after the duration set in settings', function () {
     expect($order->isExpired())->toBeTrue();
 
     // Attempting to initiate M-Pesa on expired order returns 400
-    $paymentAttempt = $this->actingAs($student)->postJson("/api/v1/payments/mpesa/{$orderUuid}", [
+    $paymentAttempt = $this->actingAs($student)->postJson("/api/v1/orders/{$orderUuid}/pay/mpesa", [
         'phone' => '0712345678',
     ]);
 

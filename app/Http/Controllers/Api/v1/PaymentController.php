@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api\v1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\InitiateMpesaRequest;
-use App\Http\Resources\OrderResource;
 use App\Http\Resources\PaymentResource;
 use App\Models\Order;
 use App\Models\Payment;
@@ -38,6 +37,7 @@ class PaymentController extends Controller
 
         if ($order->isExpired()) {
             $order->update(['status' => 'expired']);
+
             return response()->json(['message' => 'This order has expired. Please initiate a new order.'], 400);
         }
 
@@ -95,6 +95,7 @@ class PaymentController extends Controller
         $payment = Payment::where('checkout_request_id', $checkoutRequestId)->first();
         if (! $payment) {
             Log::warning("M-Pesa callback for unknown CheckoutRequestID: {$checkoutRequestId}");
+
             return response()->json(['ResultCode' => 0, 'ResultDesc' => 'Acknowledged']);
         }
 

@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Services\Receipts\ReceiptIssuerInterface;
+use App\Services\Receipts\StandardPdfReceiptIssuer;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 
@@ -13,8 +15,8 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(
-            \App\Services\Receipts\ReceiptIssuerInterface::class,
-            \App\Services\Receipts\StandardPdfReceiptIssuer::class
+            ReceiptIssuerInterface::class,
+            StandardPdfReceiptIssuer::class
         );
     }
 

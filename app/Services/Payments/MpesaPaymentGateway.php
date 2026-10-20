@@ -10,10 +10,15 @@ use Illuminate\Support\Facades\Log;
 class MpesaPaymentGateway implements PaymentGatewayInterface
 {
     protected string $env;
+
     protected string $consumerKey;
+
     protected string $consumerSecret;
+
     protected string $shortcode;
+
     protected string $passkey;
+
     protected string $callbackToken;
 
     public function __construct()
@@ -136,6 +141,7 @@ class MpesaPaymentGateway implements PaymentGatewayInterface
                     }
                 } catch (\Exception $e) {
                     Log::error('M-Pesa STK push exception: '.$e->getMessage());
+
                     return PaymentResult::failed('Could not connect to Safaricom Daraja gateway: '.$e->getMessage());
                 }
             }
@@ -214,6 +220,7 @@ class MpesaPaymentGateway implements PaymentGatewayInterface
 
                     if ($resultCode === 0) {
                         $reference = 'MPESA-QRY-'.strtoupper(substr(md5($payment->checkout_request_id), 0, 10));
+
                         return PaymentResult::successful($reference, 'Payment confirmed via STK Query API.', $json);
                     } elseif ($resultCode === 1032) {
                         return PaymentResult::failed('Transaction cancelled by user.', $json);
