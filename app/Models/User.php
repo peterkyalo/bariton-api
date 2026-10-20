@@ -42,6 +42,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'two_factor_secret',
         'two_factor_recovery_codes',
         'two_factor_confirmed_at',
+        'notification_preferences',
     ];
 
     protected $hidden = [
@@ -62,7 +63,32 @@ class User extends Authenticatable implements MustVerifyEmail
             'deletion_requested_at' => 'datetime',
             'failed_login_count' => 'integer',
             'password' => 'hashed',
+            'notification_preferences' => 'array',
         ];
+    }
+
+    /**
+     * Determine if user allows a particular notification category/key.
+     * Security and payment messages are ALWAYS mandatory and cannot be disabled.
+     */
+    public function allowsNotification(string $key, string $category = 'general'): bool
+    {
+        $mandatoryKeys = [
+            'registration',
+            'payment_received',
+            'receipt_issued',
+            'refund_decision',
+            'two_factor_challenge',
+            'reset_password',
+        ];
+
+        if ($category === 'security_payment' || in_array($key, $mandatoryKeys, true)) {
+            return true;
+        }
+
+        $prefs = $this->notification_preferences ?? [];
+
+        return (bool) ($prefs[$key] ?? true);
     }
 
     public function getActivitylogOptions(): LogOptions
