@@ -11,8 +11,11 @@ use Illuminate\Support\Str;
 class PayPalPaymentGateway implements PaymentGatewayInterface
 {
     protected string $mode;
+
     protected string $clientId;
+
     protected string $clientSecret;
+
     protected string $webhookId;
 
     public function __construct()
@@ -105,12 +108,14 @@ class PayPalPaymentGateway implements PaymentGatewayInterface
                 return PaymentResult::failed($json['message'] ?? 'Failed to initialize PayPal order.', $json);
             } catch (\Exception $e) {
                 Log::error('PayPal initiate exception: '.$e->getMessage());
+
                 return PaymentResult::failed('Could not connect to PayPal API: '.$e->getMessage());
             }
         }
 
         // Test mode simulation
         $mockOrderId = 'PAYPAL_ORDER_'.strtoupper(Str::random(12));
+
         return PaymentResult::pending(
             reference: $mockOrderId,
             message: 'PayPal order created (test mode).',
@@ -132,6 +137,7 @@ class PayPalPaymentGateway implements PaymentGatewayInterface
 
         if ($status === 'COMPLETED') {
             $reference = $captureId ?: 'PAYPAL-CAP-'.strtoupper(Str::random(10));
+
             return PaymentResult::successful($reference, 'Payment confirmed via PayPal.', [
                 'paypal_payload' => $payload,
                 'capture_id' => $reference,
@@ -164,6 +170,7 @@ class PayPalPaymentGateway implements PaymentGatewayInterface
                     if (($json['status'] ?? '') === 'COMPLETED') {
                         return PaymentResult::successful($orderId, 'Payment is completed on PayPal.', $json);
                     }
+
                     return PaymentResult::pending($orderId, 'Payment is awaiting PayPal completion.', $json);
                 }
             } catch (\Exception $e) {
@@ -214,12 +221,14 @@ class PayPalPaymentGateway implements PaymentGatewayInterface
                 return RefundResult::failed($json['message'] ?? 'PayPal refund failed.', $json);
             } catch (\Exception $e) {
                 Log::error('PayPal refund exception: '.$e->getMessage());
+
                 return RefundResult::failed('Could not process PayPal refund: '.$e->getMessage());
             }
         }
 
         // Test mode simulation
         $mockRefundId = 'PP-REF-'.strtoupper(Str::random(12));
+
         return RefundResult::successful(
             $mockRefundId,
             'PayPal refund simulated successfully in test mode.',

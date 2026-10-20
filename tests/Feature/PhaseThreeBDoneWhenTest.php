@@ -12,7 +12,6 @@ use Database\Seeders\RolesAndPermissionsSeeder;
 use Database\Seeders\SettingsSeeder;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -241,7 +240,6 @@ test('a refund on one item moves from request to approval to credit note to revo
         'notes' => 'Approved per 14-day policy.',
     ]);
 
-    $reviewRes->dump();
     $reviewRes->assertOk()
         ->assertJsonPath('refund_request.status', 'approved')
         ->assertJsonStructure(['credit_note' => ['credit_note_number']]);

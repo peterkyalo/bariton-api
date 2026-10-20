@@ -26,6 +26,7 @@ class RefundResult
         if ($name === 'refundReference') {
             return $this->reference;
         }
+
         return null;
     }
 }

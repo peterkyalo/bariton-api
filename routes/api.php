@@ -103,6 +103,7 @@ Route::middleware(['auth:sanctum', EnsureUserIsActive::class, EnsureTwoFactorEna
     Route::get('orders/{uuid}', [OrderController::class, 'show']);
     Route::post('orders/{uuid}/pay/mpesa', [PaymentController::class, 'initiateMpesa']);
     Route::post('orders/{uuid}/pay/stripe', [PaymentController::class, 'initiateStripe']);
+    Route::post('orders/{uuid}/pay/stripe/confirm', [PaymentController::class, 'confirmStripe']);
     Route::post('orders/{uuid}/pay/paypal', [PaymentController::class, 'initiatePaypal']);
     Route::post('orders/{uuid}/pay/paypal/capture', [PaymentController::class, 'capturePaypal']);
     Route::get('orders/{uuid}/status', [PaymentController::class, 'checkStatus']);

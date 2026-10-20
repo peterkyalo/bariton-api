@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Services\Receipts\CreditNoteIssuerInterface;
 use App\Services\Receipts\ReceiptIssuerInterface;
+use App\Services\Receipts\StandardPdfCreditNoteIssuer;
 use App\Services\Receipts\StandardPdfReceiptIssuer;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
@@ -20,8 +22,8 @@ class AppServiceProvider extends ServiceProvider
         );
 
         $this->app->bind(
-            \App\Services\Receipts\CreditNoteIssuerInterface::class,
-            \App\Services\Receipts\StandardPdfCreditNoteIssuer::class
+            CreditNoteIssuerInterface::class,
+            StandardPdfCreditNoteIssuer::class
         );
     }
 

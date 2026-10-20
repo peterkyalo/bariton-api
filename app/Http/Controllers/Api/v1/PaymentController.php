@@ -124,6 +124,55 @@ class PaymentController extends Controller
     }
 
     /**
+     * Confirm Stripe card payment after client authorization (or test mode simulated confirmation).
+     */
+    public function confirmStripe(Request $request, string $orderUuid): JsonResponse
+    {
+        $order = Order::where('uuid', $orderUuid)->firstOrFail();
+
+        if ($order->user_id !== $request->user()->id) {
+            abort(403);
+        }
+
+        $payment = Payment::where('order_id', $order->id)
+            ->where('gateway', 'stripe')
+            ->latest()
+            ->firstOrFail();
+
+        if ($payment->isSuccessful()) {
+            return response()->json([
+                'message' => 'Payment already completed.',
+                'order_status' => 'paid',
+            ]);
+        }
+
+        $piId = $payment->stripe_payment_intent_id ?: 'pi_test_'.Str::random(24);
+        $confirmResult = $this->stripeGateway->confirm($payment, [
+            'status' => 'succeeded',
+            'id' => $piId,
+        ]);
+
+        if ($confirmResult->success) {
+            $payment->update([
+                'reference' => $piId,
+                'payload' => array_merge($payment->payload ?? [], [
+                    'status' => 'succeeded',
+                    'confirmed_at' => now()->toIso8601String(),
+                ]),
+            ]);
+
+            $this->fulfillmentService->fulfill($order, $payment);
+
+            return response()->json([
+                'message' => 'Card payment confirmed successfully and access granted.',
+                'order_status' => 'paid',
+            ]);
+        }
+
+        return response()->json(['message' => 'Could not confirm card payment.'], 400);
+    }
+
+    /**
      * Initiate PayPal payment in USD at the locked exchange rate.
      */
     public function initiatePaypal(Request $request, string $orderUuid): JsonResponse

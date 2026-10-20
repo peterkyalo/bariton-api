@@ -11,6 +11,7 @@ use Illuminate\Support\Str;
 class StripePaymentGateway implements PaymentGatewayInterface
 {
     protected string $apiKey;
+
     protected string $webhookSecret;
 
     public function __construct()
@@ -64,6 +65,7 @@ class StripePaymentGateway implements PaymentGatewayInterface
                 return PaymentResult::failed($json['error']['message'] ?? 'Failed to create Stripe PaymentIntent.', $json);
             } catch (\Exception $e) {
                 Log::error('Stripe initiate exception: '.$e->getMessage());
+
                 return PaymentResult::failed('Could not connect to Stripe payment gateway: '.$e->getMessage());
             }
         }
@@ -93,6 +95,7 @@ class StripePaymentGateway implements PaymentGatewayInterface
 
         if ($status === 'succeeded') {
             $reference = $piId ?: 'ch_stripe_'.Str::random(16);
+
             return PaymentResult::successful($reference, 'Payment confirmed via Stripe.', [
                 'stripe_payload' => $payload,
                 'payment_intent' => $piId,
@@ -124,6 +127,7 @@ class StripePaymentGateway implements PaymentGatewayInterface
                     if (($json['status'] ?? '') === 'succeeded') {
                         return PaymentResult::successful($piId, 'Payment confirmed via Stripe.', $json);
                     }
+
                     return PaymentResult::pending($piId, 'Payment is awaiting completion.', $json);
                 }
             } catch (\Exception $e) {
@@ -174,12 +178,14 @@ class StripePaymentGateway implements PaymentGatewayInterface
                 return RefundResult::failed($json['error']['message'] ?? 'Stripe refund call failed.');
             } catch (\Exception $e) {
                 Log::error('Stripe refund exception: '.$e->getMessage());
+
                 return RefundResult::failed('Could not process Stripe refund: '.$e->getMessage());
             }
         }
 
         // Test mode simulation
         $mockRefundId = 're_test_'.Str::random(20);
+
         return RefundResult::successful(
             $mockRefundId,
             'Stripe card refund simulated successfully in test mode.',
