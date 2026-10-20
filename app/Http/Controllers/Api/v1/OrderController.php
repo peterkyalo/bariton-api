@@ -58,6 +58,11 @@ class OrderController extends Controller
                 'total_paid_kes' => $upgradeData['total_paid_kes'],
                 'owned_module_ids' => $upgradeData['owned_module_ids'],
             ];
+        } elseif ($itemType === 'exam_retake_package') {
+            $course = Course::findOrFail($itemId);
+            $priceKes = (int) \App\Models\Setting::getValue('exam_retake_package_price_kes', 500000);
+            $title = "Exam Retake Package (3 Additional Attempts): {$course->title}";
+            $meta = ['course_id' => $course->id];
         }
 
         // Snapshot settings

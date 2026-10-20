@@ -141,6 +141,21 @@ class OrderFulfillmentService
                     ]
                 );
             }
+        } elseif ($item->item_type === 'exam_retake_package') {
+            $enrollment = Enrollment::where('user_id', $user->id)
+                ->where('course_id', $item->item_id)
+                ->first();
+
+            if ($enrollment) {
+                // Grant an additional 3 attempts
+                $enrollment->increment('exam_attempt_limit', 3);
+
+                activity()
+                    ->performedOn($enrollment)
+                    ->causedBy($user)
+                    ->withProperties(['order_id' => $order->id, 'added_attempts' => 3])
+                    ->log('Exam retake package activated (+3 attempts)');
+            }
         }
     }
 }
