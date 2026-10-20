@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\v1\OrderController;
 use App\Http\Controllers\Api\v1\PaymentController;
 use App\Http\Controllers\Api\v1\ProfileController;
 use App\Http\Controllers\Api\v1\PublicSettingController;
+use App\Http\Controllers\Api\v1\RefundController;
 use App\Http\Controllers\Api\v1\StudentCourseController;
 use App\Http\Middleware\EnsureTwoFactorEnabled;
 use App\Http\Middleware\EnsureUserIsActive;
@@ -51,8 +52,10 @@ Route::get('courses/{slug}/preview/{lessonUuid}', [CourseCatalogController::clas
 // Signed Media Streaming
 Route::get('media/lessons/{uuid}', [MediaStreamController::class, 'stream'])->name('media.lessons.stream');
 
-// M-Pesa Callback Webhook
+// Payment Webhooks
 Route::post('payments/mpesa/callback/{token}', [PaymentController::class, 'mpesaCallback']);
+Route::post('webhooks/stripe', [PaymentController::class, 'stripeWebhook']);
+Route::post('webhooks/paypal', [PaymentController::class, 'paypalWebhook']);
 
 // Authenticated Endpoints (Sanctum cookie or token)
 Route::middleware(['auth:sanctum', EnsureUserIsActive::class, EnsureTwoFactorEnabled::class])->group(function () {
@@ -82,7 +85,7 @@ Route::middleware(['auth:sanctum', EnsureUserIsActive::class, EnsureTwoFactorEna
     Route::post('me/deletion-request', [ProfileController::class, 'requestDeletion']);
     Route::delete('me/deletion-request', [ProfileController::class, 'cancelDeletion']);
 
-    // Student Learning & Progress
+    // Student Learning, Orders & Refunds
     Route::prefix('student')->group(function () {
         Route::get('enrollments', [StudentCourseController::class, 'enrollments']);
         Route::get('enrollments/{uuid}', [StudentCourseController::class, 'enrollmentDetail']);
@@ -90,19 +93,28 @@ Route::middleware(['auth:sanctum', EnsureUserIsActive::class, EnsureTwoFactorEna
         Route::post('lessons/{uuid}/progress', [StudentCourseController::class, 'recordProgress']);
         Route::get('orders', [OrderController::class, 'studentOrders']);
         Route::get('receipts/{uuid}/download', [OrderController::class, 'downloadReceipt']);
+        Route::post('orders/{uuid}/refund-requests', [RefundController::class, 'store']);
+        Route::get('refund-requests', [RefundController::class, 'studentIndex']);
+        Route::get('credit-notes/{uuid}/download', [RefundController::class, 'downloadCreditNote']);
     });
 
     // Orders & Payments
     Route::post('orders', [OrderController::class, 'store']);
     Route::get('orders/{uuid}', [OrderController::class, 'show']);
     Route::post('orders/{uuid}/pay/mpesa', [PaymentController::class, 'initiateMpesa']);
+    Route::post('orders/{uuid}/pay/stripe', [PaymentController::class, 'initiateStripe']);
+    Route::post('orders/{uuid}/pay/paypal', [PaymentController::class, 'initiatePaypal']);
+    Route::post('orders/{uuid}/pay/paypal/capture', [PaymentController::class, 'capturePaypal']);
     Route::get('orders/{uuid}/status', [PaymentController::class, 'checkStatus']);
 
-    // Finance Staff Operations
+    // Finance Operations
     Route::prefix('finance')->group(function () {
         Route::get('orders', [FinancePaymentController::class, 'orders']);
         Route::post('cash-payment', [FinancePaymentController::class, 'recordCash']);
         Route::get('payments', [FinancePaymentController::class, 'payments']);
+        Route::get('refund-requests', [RefundController::class, 'financeIndex']);
+        Route::post('refund-requests/{uuid}/review', [RefundController::class, 'financeReview']);
+        Route::get('credit-notes', [RefundController::class, 'financeCreditNotes']);
     });
 
     // Instructor Course Management
