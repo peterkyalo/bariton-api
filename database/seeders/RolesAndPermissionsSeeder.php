@@ -34,6 +34,14 @@ class RolesAndPermissionsSeeder extends Seeder
             'courses.manage-all',
             'courses.teach',
             'courses.enroll',
+            'events.view',
+            'events.create',
+            'events.update',
+            'events.delete',
+            'events.manage',
+            'events.checkin',
+            'events.remind',
+            'events.book',
         ];
 
         foreach ($permissions as $permission) {
@@ -51,6 +59,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'courses.teach',
             'courses.create',
             'courses.update',
+            'events.view',
         ]);
 
         $student = Role::firstOrCreate(['name' => 'student', 'guard_name' => 'web']);
@@ -58,15 +67,36 @@ class RolesAndPermissionsSeeder extends Seeder
             'dashboard.student',
             'courses.view',
             'courses.enroll',
+            'events.view',
+            'events.book',
         ]);
 
         $financeManager = Role::firstOrCreate(['name' => 'finance_manager', 'guard_name' => 'web']);
-        $financeManager->syncPermissions(['dashboard.finance', 'settings.view']);
+        $financeManager->syncPermissions([
+            'dashboard.finance',
+            'settings.view',
+            'events.view',
+            'events.manage',
+        ]);
 
         $financeStaff = Role::firstOrCreate(['name' => 'finance_staff', 'guard_name' => 'web']);
-        $financeStaff->syncPermissions(['dashboard.finance']);
+        $financeStaff->syncPermissions([
+            'dashboard.finance',
+            'events.view',
+            'events.manage',
+        ]);
 
         $coordinator = Role::firstOrCreate(['name' => 'workshop_coordinator', 'guard_name' => 'web']);
-        $coordinator->syncPermissions(['dashboard.coordinator', 'courses.view']);
+        $coordinator->syncPermissions([
+            'dashboard.coordinator',
+            'courses.view',
+            'events.view',
+            'events.create',
+            'events.update',
+            'events.delete',
+            'events.manage',
+            'events.checkin',
+            'events.remind',
+        ]);
     }
 }

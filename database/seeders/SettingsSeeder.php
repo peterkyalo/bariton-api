@@ -199,6 +199,15 @@ class SettingsSeeder extends Seeder
                 'description' => 'Time finance staff can hold an in-person event seat pending school cash receipt.',
                 'is_public' => false,
             ],
+            [
+                'key' => 'bootcamp_refund_window_days',
+                'value' => 7,
+                'type' => 'integer',
+                'group' => 'bookings',
+                'label' => 'Bootcamp Refund Request Window (Days)',
+                'description' => 'Minimum days prior to event start date when a refund request can be submitted.',
+                'is_public' => true,
+            ],
 
             // Currency & Tax
             [

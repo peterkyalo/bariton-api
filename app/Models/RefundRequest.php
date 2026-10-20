@@ -19,11 +19,13 @@ class RefundRequest extends Model
         'uuid',
         'order_id',
         'order_item_id',
+        'event_booking_id',
         'user_id',
         'amount_kes',
         'amount_usd_cents',
         'currency',
         'reason',
+        'proof_document_path',
         'status',
         'reviewed_by',
         'reviewed_at',
@@ -64,6 +66,11 @@ class RefundRequest extends Model
     public function orderItem(): BelongsTo
     {
         return $this->belongsTo(OrderItem::class);
+    }
+
+    public function eventBooking(): BelongsTo
+    {
+        return $this->belongsTo(EventBooking::class);
     }
 
     public function user(): BelongsTo
