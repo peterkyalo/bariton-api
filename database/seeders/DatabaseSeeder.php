@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
             CoursesSeeder::class,
             EventSeeder::class,
             TutoringPackageSeeder::class,
+            NotificationTemplateSeeder::class,
         ]);
     }
 }
