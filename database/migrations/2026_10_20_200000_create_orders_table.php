@@ -18,11 +18,11 @@ return new class extends Migration
             $table->unsignedBigInteger('vat_kes')->default(0); // minor units
             $table->decimal('vat_rate_percent', 5, 2)->default(0.00); // snapshot from settings
             $table->decimal('exchange_rate_used', 8, 2)->default(130.00); // snapshot from settings
-            $table->unsignedBigInteger('total_usd_cents'); // snapshot USD cents
+            $table->unsignedBigInteger('total_usd_cents')->default(0); // snapshot USD cents
             $table->string('currency')->default('KES');
             $table->string('payment_method')->nullable(); // mpesa, cash, stripe, paypal
             $table->timestamp('paid_at')->nullable();
-            $table->timestamp('expires_at');
+            $table->timestamp('expires_at')->nullable();
             $table->text('notes')->nullable();
             $table->timestamps();
             $table->softDeletes();

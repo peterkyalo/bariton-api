@@ -8,8 +8,11 @@ use App\Http\Controllers\Api\v1\Admin\SettingController;
 use App\Http\Controllers\Api\v1\Admin\UserController;
 use App\Http\Controllers\Api\v1\AuthController;
 use App\Http\Controllers\Api\v1\CourseCatalogController;
+use App\Http\Controllers\Api\v1\FinancePaymentController;
 use App\Http\Controllers\Api\v1\InstructorCourseController;
 use App\Http\Controllers\Api\v1\MediaStreamController;
+use App\Http\Controllers\Api\v1\OrderController;
+use App\Http\Controllers\Api\v1\PaymentController;
 use App\Http\Controllers\Api\v1\ProfileController;
 use App\Http\Controllers\Api\v1\PublicSettingController;
 use App\Http\Controllers\Api\v1\StudentCourseController;
@@ -48,6 +51,9 @@ Route::get('courses/{slug}/preview/{lessonUuid}', [CourseCatalogController::clas
 // Signed Media Streaming
 Route::get('media/lessons/{uuid}', [MediaStreamController::class, 'stream'])->name('media.lessons.stream');
 
+// M-Pesa Callback Webhook
+Route::post('payments/mpesa/callback/{token}', [PaymentController::class, 'mpesaCallback']);
+
 // Authenticated Endpoints (Sanctum cookie or token)
 Route::middleware(['auth:sanctum', EnsureUserIsActive::class, EnsureTwoFactorEnabled::class])->group(function () {
     // Auth Session / Token
@@ -82,6 +88,21 @@ Route::middleware(['auth:sanctum', EnsureUserIsActive::class, EnsureTwoFactorEna
         Route::get('enrollments/{uuid}', [StudentCourseController::class, 'enrollmentDetail']);
         Route::get('lessons/{uuid}', [StudentCourseController::class, 'lessonDetail']);
         Route::post('lessons/{uuid}/progress', [StudentCourseController::class, 'recordProgress']);
+        Route::get('orders', [OrderController::class, 'studentOrders']);
+        Route::get('receipts/{uuid}/download', [OrderController::class, 'downloadReceipt']);
+    });
+
+    // Orders & Payments
+    Route::post('orders', [OrderController::class, 'store']);
+    Route::get('orders/{uuid}', [OrderController::class, 'show']);
+    Route::post('orders/{uuid}/pay/mpesa', [PaymentController::class, 'initiateMpesa']);
+    Route::get('orders/{uuid}/status', [PaymentController::class, 'checkStatus']);
+
+    // Finance Staff Operations
+    Route::prefix('finance')->group(function () {
+        Route::get('orders', [FinancePaymentController::class, 'orders']);
+        Route::post('cash-payment', [FinancePaymentController::class, 'recordCash']);
+        Route::get('payments', [FinancePaymentController::class, 'payments']);
     });
 
     // Instructor Course Management

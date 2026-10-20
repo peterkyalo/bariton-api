@@ -57,6 +57,9 @@ class Order extends Model
             if (empty($order->order_number)) {
                 $order->order_number = 'BMAS-ORD-'.now()->format('Ym').'-'.strtoupper(Str::random(6));
             }
+            if (empty($order->expires_at)) {
+                $order->expires_at = now()->addMinutes(30);
+            }
         });
     }
 
@@ -105,7 +108,7 @@ class Order extends Model
 
     public function isExpired(): bool
     {
-        return $this->status === 'expired' || ($this->isPending() && $this->expires_at->isPast());
+        return $this->status === 'expired' || ($this->isPending() && $this->expires_at?->isPast());
     }
 
     public function getTotalKesFormattedAttribute(): string
