@@ -137,9 +137,33 @@ class PricingService
             ->with('enrollmentModules')
             ->first();
 
-        if (! $enrollment || $enrollment->enrollmentModules->isEmpty()) {
+        if (! $enrollment) {
             return [
                 'has_owned_modules' => false,
+                'is_validation_path' => false,
+                'owned_module_ids' => [],
+                'total_paid_kes' => 0,
+                'upgrade_price' => $this->formatPrice($bundlePriceKes),
+            ];
+        }
+
+        if ($enrollment->path_type === 'validation') {
+            $validationPrice = (int) ($course->validation_price_kes ?: 0);
+            $upgradePriceKes = max(0, $bundlePriceKes - $validationPrice);
+
+            return [
+                'has_owned_modules' => false,
+                'is_validation_path' => true,
+                'owned_module_ids' => [],
+                'total_paid_kes' => $validationPrice,
+                'upgrade_price' => $this->formatPrice($upgradePriceKes),
+            ];
+        }
+
+        if ($enrollment->enrollmentModules->isEmpty()) {
+            return [
+                'has_owned_modules' => false,
+                'is_validation_path' => false,
                 'owned_module_ids' => [],
                 'total_paid_kes' => 0,
                 'upgrade_price' => $this->formatPrice($bundlePriceKes),
@@ -152,6 +176,7 @@ class PricingService
 
         return [
             'has_owned_modules' => true,
+            'is_validation_path' => false,
             'owned_module_ids' => $ownedModuleIds,
             'total_paid_kes' => $totalPaidKes,
             'upgrade_price' => $this->formatPrice($upgradePriceKes),

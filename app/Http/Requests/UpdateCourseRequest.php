@@ -30,6 +30,9 @@ class UpdateCourseRequest extends FormRequest
             'bundle_discount_type' => ['sometimes', 'required', 'in:none,percent,fixed_kes'],
             'bundle_discount_value' => ['sometimes', 'required', 'integer', 'min:0'],
             'requires_sequential_levels' => ['nullable', 'boolean'],
+            'is_open_for_validation' => ['nullable', 'boolean'],
+            'validation_price_kes' => ['nullable', 'integer', 'min:0'],
+            'validation_price_usd' => ['nullable', 'integer', 'min:0'],
             'instructor_ids' => ['nullable', 'array'],
             'instructor_ids.*' => ['exists:users,id'],
         ];

@@ -54,6 +54,9 @@ class CoursesSeeder extends Seeder
                 'bundle_discount_type' => 'percent',
                 'bundle_discount_value' => 15,
                 'requires_sequential_levels' => true,
+                'is_open_for_validation' => true,
+                'validation_price_kes' => 1200000,
+                'validation_price_usd' => 9500,
                 'created_by' => $admin?->id,
             ]
         );

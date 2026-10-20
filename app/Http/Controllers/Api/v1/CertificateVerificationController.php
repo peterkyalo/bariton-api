@@ -32,6 +32,9 @@ class CertificateVerificationController extends Controller
                 'holder_name' => $certificate->holder_name,
                 'course_title' => $certificate->course_title,
                 'path_type' => $certificate->path_type,
+                'is_validation_path' => $certificate->path_type === 'validation',
+                'certificate_type_title' => $certificate->path_type === 'validation' ? 'Certificate of Skills Validation' : 'Certificate of Mastery',
+                'assessment_note' => $certificate->path_type === 'validation' ? 'The holder completed assessment examination only.' : 'The holder fulfilled all instructional curriculum requirements and examinations.',
                 'status' => $certificate->status, // 'issued', 'revoked', 'replaced'
                 'issued_at' => $certificate->issued_at?->toIso8601String(),
                 'revoked_at' => $certificate->revoked_at?->toIso8601String(),

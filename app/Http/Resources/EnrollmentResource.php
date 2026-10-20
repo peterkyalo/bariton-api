@@ -36,11 +36,13 @@ class EnrollmentResource extends JsonResource
                 'short_description' => $this->course->short_description,
                 'requires_sequential_levels' => (bool) $this->course->requires_sequential_levels,
             ],
+            'is_validation_path' => $this->path_type === 'validation',
             'unlocked_module_ids' => $unlockedModuleIds,
             'modules' => $this->course->modules->map(function ($module) use ($unlockedModuleIds, $progressMap) {
-                $isUnlocked = in_array($module->id, $unlockedModuleIds);
+                $isValidation = $this->path_type === 'validation';
+                $isUnlocked = $isValidation || in_array($module->id, $unlockedModuleIds);
 
-                $lessons = $module->lessons->map(function ($lesson) use ($progressMap, $isUnlocked) {
+                $lessons = $isValidation ? collect([]) : $module->lessons->map(function ($lesson) use ($progressMap, $isUnlocked) {
                     $prog = $progressMap[$lesson->id] ?? null;
 
                     return [
@@ -60,7 +62,7 @@ class EnrollmentResource extends JsonResource
 
                 $totalLessons = $lessons->count();
                 $completedLessons = $lessons->filter(fn ($l) => ($l['progress']['status'] ?? '') === 'completed')->count();
-                $moduleProgress = $totalLessons > 0 ? round(($completedLessons / $totalLessons) * 100) : 0;
+                $moduleProgress = $totalLessons > 0 ? round(($completedLessons / $totalLessons) * 100) : ($isValidation ? 100 : 0);
 
                 $assignments = $module->relationLoaded('assignments') ? $module->assignments->map(function ($asgn) {
                     return [

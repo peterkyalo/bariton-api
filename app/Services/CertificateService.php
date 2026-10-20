@@ -33,19 +33,21 @@ class CertificateService
             return false;
         }
 
-        // 1. Check all lessons completed
-        $totalLessonIds = $course->modules->flatMap(function ($mod) {
-            return $mod->lessons;
-        })->pluck('id');
+        // 1. Check all lessons completed (applicable only for standard track; validation track assesses through assignments & exams only)
+        if ($enrollment->path_type !== 'validation') {
+            $totalLessonIds = $course->modules->flatMap(function ($mod) {
+                return $mod->lessons;
+            })->pluck('id');
 
-        if ($totalLessonIds->isNotEmpty()) {
-            $completedCount = $enrollment->lessonProgress()
-                ->whereIn('lesson_id', $totalLessonIds)
-                ->where('status', 'completed')
-                ->count();
+            if ($totalLessonIds->isNotEmpty()) {
+                $completedCount = $enrollment->lessonProgress()
+                    ->whereIn('lesson_id', $totalLessonIds)
+                    ->where('status', 'completed')
+                    ->count();
 
-            if ($completedCount < $totalLessonIds->count()) {
-                return false;
+                if ($completedCount < $totalLessonIds->count()) {
+                    return false;
+                }
             }
         }
 

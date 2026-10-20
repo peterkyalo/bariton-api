@@ -117,18 +117,25 @@ class OrderFulfillmentService
                 return;
             }
 
-            $enrollment = Enrollment::firstOrCreate(
-                [
-                    'user_id' => $user->id,
-                    'course_id' => $course->id,
-                ],
-                [
+            $enrollment = Enrollment::where('user_id', $user->id)
+                ->where('course_id', $course->id)
+                ->first();
+
+            if ($enrollment) {
+                $enrollment->update([
                     'path_type' => 'standard',
                     'status' => 'active',
-                ]
-            );
+                ]);
+            } else {
+                $enrollment = Enrollment::create([
+                    'user_id' => $user->id,
+                    'course_id' => $course->id,
+                    'path_type' => 'standard',
+                    'status' => 'active',
+                ]);
+            }
 
-            // Unlock any remaining modules for this course
+            // Unlock all modules for this course
             foreach ($course->modules as $mod) {
                 EnrollmentModule::firstOrCreate(
                     [
@@ -141,6 +148,42 @@ class OrderFulfillmentService
                     ]
                 );
             }
+
+            activity()
+                ->performedOn($enrollment)
+                ->causedBy($user)
+                ->withProperties(['order_id' => $order->id])
+                ->log('Course bundle upgrade activated (upgraded to standard path)');
+        } elseif ($item->item_type === 'assessment_package') {
+            $course = Course::find($item->item_id);
+            if (! $course) {
+                return;
+            }
+
+            $enrollment = Enrollment::where('user_id', $user->id)
+                ->where('course_id', $course->id)
+                ->first();
+
+            if (! $enrollment) {
+                $enrollment = Enrollment::create([
+                    'user_id' => $user->id,
+                    'course_id' => $course->id,
+                    'path_type' => 'validation',
+                    'status' => 'active',
+                    'progress_percent' => 0.00,
+                ]);
+            } else {
+                $enrollment->update([
+                    'path_type' => 'validation',
+                    'status' => 'active',
+                ]);
+            }
+
+            activity()
+                ->performedOn($enrollment)
+                ->causedBy($user)
+                ->withProperties(['order_id' => $order->id, 'path_type' => 'validation'])
+                ->log('Professional skills validation path activated');
         } elseif ($item->item_type === 'exam_retake_package') {
             $enrollment = Enrollment::where('user_id', $user->id)
                 ->where('course_id', $item->item_id)

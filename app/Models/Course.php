@@ -32,6 +32,9 @@ class Course extends Model
         'bundle_discount_type',
         'bundle_discount_value',
         'requires_sequential_levels',
+        'is_open_for_validation',
+        'validation_price_kes',
+        'validation_price_usd',
         'created_by',
     ];
 
@@ -40,6 +43,9 @@ class Course extends Model
         return [
             'bundle_discount_value' => 'integer',
             'requires_sequential_levels' => 'boolean',
+            'is_open_for_validation' => 'boolean',
+            'validation_price_kes' => 'integer',
+            'validation_price_usd' => 'integer',
         ];
     }
 
@@ -58,7 +64,7 @@ class Course extends Model
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['title', 'status', 'bundle_discount_type', 'bundle_discount_value'])
+            ->logOnly(['title', 'status', 'bundle_discount_type', 'bundle_discount_value', 'is_open_for_validation', 'validation_price_kes'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
     }

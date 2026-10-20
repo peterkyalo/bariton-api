@@ -23,6 +23,8 @@ class CourseResource extends JsonResource
         $currentUser = $request->user();
         $upgradeData = $pricingService->calculateUpgradePrice($this->resource, $currentUser);
 
+        $validationPrice = $pricingService->formatPrice((int) ($this->validation_price_kes ?: 0));
+
         return [
             'id' => $this->id,
             'uuid' => $this->uuid,
@@ -33,6 +35,14 @@ class CourseResource extends JsonResource
             'thumbnail_path' => $this->thumbnail_path,
             'status' => $this->status,
             'requires_sequential_levels' => (bool) $this->requires_sequential_levels,
+            'is_open_for_validation' => (bool) $this->is_open_for_validation,
+            'validation_pricing' => [
+                'is_open_for_validation' => (bool) $this->is_open_for_validation,
+                'price_kes' => (int) ($this->validation_price_kes ?: 0),
+                'price_kes_formatted' => $validationPrice['kes_formatted'],
+                'price_usd_cents' => $validationPrice['usd_cents'],
+                'price_usd_formatted' => $validationPrice['usd_formatted'],
+            ],
             'instructors' => $this->instructors->map(function ($instructor) {
                 return [
                     'id' => $instructor->id,
@@ -61,6 +71,7 @@ class CourseResource extends JsonResource
             ],
             'upgrade_pricing' => [
                 'has_owned_modules' => $upgradeData['has_owned_modules'],
+                'is_validation_path' => $upgradeData['is_validation_path'] ?? false,
                 'owned_module_ids' => $upgradeData['owned_module_ids'],
                 'total_paid_kes' => $upgradeData['total_paid_kes'],
                 'upgrade_price_kes' => $upgradeData['upgrade_price']['kes'],

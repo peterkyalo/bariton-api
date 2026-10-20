@@ -58,7 +58,18 @@ class OrderController extends Controller
                 'course_id' => $course->id,
                 'total_paid_kes' => $upgradeData['total_paid_kes'],
                 'owned_module_ids' => $upgradeData['owned_module_ids'],
+                'is_validation_path' => $upgradeData['is_validation_path'] ?? false,
             ];
+        } elseif ($itemType === 'assessment_package') {
+            $course = Course::findOrFail($itemId);
+            if (! $course->is_open_for_validation) {
+                return response()->json([
+                    'message' => 'This course is not currently open for skills validation.',
+                ], 422);
+            }
+            $priceKes = (int) ($course->validation_price_kes ?: 0);
+            $title = "Professional Skills Validation Package: {$course->title}";
+            $meta = ['course_id' => $course->id, 'path_type' => 'validation'];
         } elseif ($itemType === 'exam_retake_package') {
             $course = Course::findOrFail($itemId);
             $priceKes = (int) Setting::getValue('exam_retake_package_price_kes', 500000);

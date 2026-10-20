@@ -33,6 +33,10 @@ class LessonPolicy
             return false;
         }
 
+        if ($enrollment->path_type === 'validation') {
+            return false;
+        }
+
         return $enrollment->enrollmentModules()->where('module_id', $lesson->module_id)->exists();
     }
 

@@ -29,7 +29,7 @@ class StudentAssignmentController extends Controller
             ->where('status', 'active')
             ->firstOrFail();
 
-        $isUnlocked = $enrollment->unlockedModules()->where('modules.id', $module->id)->exists();
+        $isUnlocked = $enrollment->path_type === 'validation' || $enrollment->unlockedModules()->where('modules.id', $module->id)->exists();
         if (! $isUnlocked) {
             abort(403, 'This module is locked. Complete previous requirements or purchase enrollment to unlock.');
         }
@@ -137,7 +137,7 @@ class StudentAssignmentController extends Controller
             ->firstOrFail();
 
         // Check unlocked module
-        $isUnlocked = $enrollment->unlockedModules()->where('modules.id', $assignment->module_id)->exists();
+        $isUnlocked = $enrollment->path_type === 'validation' || $enrollment->unlockedModules()->where('modules.id', $assignment->module_id)->exists();
         if (! $isUnlocked) {
             abort(403, 'Module must be unlocked before submitting assignments.');
         }
