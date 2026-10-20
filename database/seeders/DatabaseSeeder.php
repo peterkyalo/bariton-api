@@ -13,6 +13,7 @@ class DatabaseSeeder extends Seeder
             SettingsSeeder::class,
             UsersSeeder::class,
             CoursesSeeder::class,
+            EventSeeder::class,
         ]);
     }
 }

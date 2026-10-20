@@ -37,7 +37,7 @@ class OrderFulfillmentService
 
             // 2. Grant access to purchased items
             foreach ($order->items as $item) {
-                $this->grantAccessForItem($order, $item);
+                $this->grantAccessForItem($order, $item, $payment);
             }
 
             // 3. Issue sequential numbered receipt
@@ -48,7 +48,7 @@ class OrderFulfillmentService
     /**
      * Grant enrollment and module access based on item type.
      */
-    protected function grantAccessForItem(Order $order, $item): void
+    protected function grantAccessForItem(Order $order, $item, ?Payment $payment = null): void
     {
         $user = $order->user;
 

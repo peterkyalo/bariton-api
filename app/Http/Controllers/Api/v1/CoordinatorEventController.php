@@ -42,10 +42,10 @@ class CoordinatorEventController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
+            'type' => 'sometimes|string|in:bootcamp,workshop,masterclass',
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             'venue' => 'required|string|max:255',
-            'address' => 'nullable|string|max:255',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
             'capacity' => 'required|integer|min:1|max:1000',
@@ -65,11 +65,11 @@ class CoordinatorEventController extends Controller
 
         $event = Event::create([
             'uuid' => (string) Str::uuid(),
+            'type' => $validated['type'] ?? 'bootcamp',
             'title' => $validated['title'],
             'slug' => $slug,
             'description' => $validated['description'],
             'venue' => $validated['venue'],
-            'address' => $validated['address'] ?? null,
             'start_date' => $validated['start_date'],
             'end_date' => $validated['end_date'],
             'capacity' => $validated['capacity'],
@@ -105,10 +105,10 @@ class CoordinatorEventController extends Controller
         $event = Event::findOrFail($id);
 
         $validated = $request->validate([
+            'type' => 'sometimes|string|in:bootcamp,workshop,masterclass',
             'title' => 'sometimes|string|max:255',
             'description' => 'sometimes|string',
             'venue' => 'sometimes|string|max:255',
-            'address' => 'nullable|string|max:255',
             'start_date' => 'sometimes|date',
             'end_date' => 'sometimes|date|after_or_equal:start_date',
             'capacity' => 'sometimes|integer|min:1|max:1000',
@@ -188,11 +188,13 @@ class CoordinatorEventController extends Controller
     {
         $event = Event::findOrFail($id);
 
-        $count = $this->reminderService->sendRemindersForEvent($event);
+        $stats = $this->reminderService->sendRemindersForEvent($event);
+        $count = $stats['attendees_count'];
 
         return response()->json([
             'message' => "Successfully dispatched reminders to {$count} confirmed attendees.",
             'dispatched_count' => $count,
+            'stats' => $stats,
         ]);
     }
 }

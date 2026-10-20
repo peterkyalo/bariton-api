@@ -132,7 +132,17 @@ Route::middleware(['auth:sanctum', EnsureUserIsActive::class, EnsureTwoFactorEna
         // Verifiable Certificates (Phase 4b)
         Route::get('certificates', [StudentExamController::class, 'certificates']);
         Route::get('certificates/{uuid}/download', [StudentExamController::class, 'downloadCertificate']);
+
+        // Bootcamps & Workshops (Phase 6)
+        Route::get('events/bookings', [StudentEventBookingController::class, 'index']);
+        Route::get('events/bookings/{uuid}', [StudentEventBookingController::class, 'show']);
+        Route::post('events/bookings/{uuid}/refund', [StudentEventBookingController::class, 'requestRefund']);
+        Route::get('events/waitlists', [StudentEventBookingController::class, 'myWaitlists']);
     });
+
+    // Event Online Holds & Waitlists (Phase 6)
+    Route::post('events/{slug}/book', [EventController::class, 'book']);
+    Route::post('events/{slug}/waitlist', [EventController::class, 'waitlist']);
 
     // Resumable Chunked Uploads
     Route::prefix('uploads/chunked')->group(function () {
@@ -160,6 +170,23 @@ Route::middleware(['auth:sanctum', EnsureUserIsActive::class, EnsureTwoFactorEna
         Route::get('refund-requests', [RefundController::class, 'financeIndex']);
         Route::post('refund-requests/{uuid}/review', [RefundController::class, 'financeReview']);
         Route::get('credit-notes', [RefundController::class, 'financeCreditNotes']);
+
+        // Physical Events Finance (Phase 6)
+        Route::post('events/{slug}/cash-hold', [FinanceEventController::class, 'createCashHold']);
+        Route::get('event-refunds', [FinanceEventController::class, 'refunds']);
+        Route::post('event-refunds/{uuid}/approve', [FinanceEventController::class, 'approveRefund']);
+        Route::post('event-refunds/{uuid}/reject', [FinanceEventController::class, 'rejectRefund']);
+    });
+
+    // Coordinator Event Management (Phase 6)
+    Route::prefix('coordinator')->group(function () {
+        Route::get('events', [CoordinatorEventController::class, 'index']);
+        Route::post('events', [CoordinatorEventController::class, 'store']);
+        Route::get('events/{id}', [CoordinatorEventController::class, 'show']);
+        Route::put('events/{id}', [CoordinatorEventController::class, 'update']);
+        Route::get('events/{id}/attendees', [CoordinatorEventController::class, 'attendees']);
+        Route::post('events/bookings/{uuid}/checkin', [CoordinatorEventController::class, 'checkIn']);
+        Route::post('events/{id}/reminders', [CoordinatorEventController::class, 'sendReminders']);
     });
 
     // Instructor Course Management
