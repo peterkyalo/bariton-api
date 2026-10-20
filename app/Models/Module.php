@@ -59,4 +59,9 @@ class Module extends Model
     {
         return $this->hasMany(EnrollmentModule::class);
     }
+
+    public function assignments(): HasMany
+    {
+        return $this->hasMany(Assignment::class)->orderBy('order');
+    }
 }
