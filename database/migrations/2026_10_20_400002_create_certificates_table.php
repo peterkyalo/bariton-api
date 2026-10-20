@@ -11,13 +11,13 @@ return new class extends Migration
         Schema::create('certificates', function (Blueprint $table) {
             $table->id();
             $table->uuid('uuid')->unique();
-            $table->string('certificate_code')->unique();
+            $table->string('certificate_code')->nullable()->unique();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('course_id')->constrained('courses')->cascadeOnDelete();
-            $table->foreignId('enrollment_id')->constrained('enrollments')->cascadeOnDelete();
+            $table->foreignId('enrollment_id')->nullable()->constrained('enrollments')->cascadeOnDelete();
             $table->foreignId('exam_attempt_id')->nullable()->constrained('exam_attempts')->nullOnDelete();
-            $table->string('holder_name');
-            $table->string('course_title');
+            $table->string('holder_name')->nullable();
+            $table->string('course_title')->nullable();
             $table->string('path_type')->default('standard'); // standard, validation
             $table->string('status')->default('issued'); // issued, revoked, replaced
             $table->string('reissue_replaced_by_code')->nullable();
@@ -28,7 +28,7 @@ return new class extends Migration
             $table->string('pdf_path')->nullable();
             $table->string('pdf_disk')->nullable();
             $table->longText('qr_code_svg')->nullable();
-            $table->timestamp('issued_at');
+            $table->timestamp('issued_at')->nullable();
             $table->timestamps();
 
             $table->index(['user_id', 'course_id', 'status']);

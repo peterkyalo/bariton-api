@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Certificate;
+use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\ExamAttempt;
 use App\Models\User;
@@ -23,28 +24,36 @@ class CertificateService
      * 2. All assignments passed in all course modules.
      * 3. Final exam attempted and passed.
      */
-    public function isEligibleForCertificate(Enrollment $enrollment): bool
+    public function isEligibleForCertificate(Enrollment $enrollment, ?ExamAttempt $examAttempt = null): bool
     {
-        $course = $enrollment->course()->with(['modules.lessons', 'modules.assignments', 'exam'])->first();
+        $course = Course::with(['modules.lessons', 'modules.assignments', 'exam'])
+            ->find($enrollment->course_id);
+
         if (! $course) {
             return false;
         }
 
         // 1. Check all lessons completed
-        $totalLessonIds = $course->modules->flatMap->lessons->pluck('id');
-        if ($totalLessonIds->isNotEmpty()) {
-            $completedLessonIds = $enrollment->lessonProgress()
-                ->whereIn('lesson_id', $totalLessonIds)
-                ->where('is_completed', true)
-                ->pluck('lesson_id');
+        $totalLessonIds = $course->modules->flatMap(function ($mod) {
+            return $mod->lessons;
+        })->pluck('id');
 
-            if ($completedLessonIds->count() < $totalLessonIds->count()) {
+        if ($totalLessonIds->isNotEmpty()) {
+            $completedCount = $enrollment->lessonProgress()
+                ->whereIn('lesson_id', $totalLessonIds)
+                ->where('status', 'completed')
+                ->count();
+
+            if ($completedCount < $totalLessonIds->count()) {
                 return false;
             }
         }
 
         // 2. Check all assignments passed
-        $assignments = $course->modules->flatMap->assignments;
+        $assignments = $course->modules->flatMap(function ($mod) {
+            return $mod->assignments;
+        });
+
         if ($assignments->isNotEmpty()) {
             foreach ($assignments as $assignment) {
                 $hasPassed = $enrollment->assignmentSubmissions()
@@ -60,7 +69,7 @@ class CertificateService
 
         // 3. Check final exam passed
         if ($course->exam) {
-            $hasPassedExam = $enrollment->examAttempts()
+            $hasPassedExam = ($examAttempt && $examAttempt->passed) || $enrollment->examAttempts()
                 ->where('exam_id', $course->exam->id)
                 ->where('passed', true)
                 ->exists();
@@ -78,7 +87,7 @@ class CertificateService
      */
     public function issueIfEligible(Enrollment $enrollment, ?ExamAttempt $examAttempt = null): ?Certificate
     {
-        if (! $this->isEligibleForCertificate($enrollment)) {
+        if (! $this->isEligibleForCertificate($enrollment, $examAttempt)) {
             return null;
         }
 
