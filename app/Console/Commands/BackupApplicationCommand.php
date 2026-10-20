@@ -23,44 +23,67 @@ class BackupApplicationCommand extends Command
         $this->info("Starting Bariton Music Academy backup [{$timestamp}]...");
 
         $dbConnection = config('database.default');
+        $dbDriver = DB::connection()->getDriverName();
         $dbFile = "{$backupDir}/bmas-db-{$timestamp}.sql";
-
-        // Export database tables
-        $tables = DB::select('SHOW TABLES');
-        $dbName = config("database.connections.{$dbConnection}.database");
-        $tableKey = "Tables_in_{$dbName}";
 
         $sqlContent = "-- Bariton Music Academy Database Backup\n-- Generated: {$timestamp}\n\n";
 
-        foreach ($tables as $tableObj) {
-            $table = $tableObj->$tableKey ?? reset($tableObj);
-            $createTable = DB::select("SHOW CREATE TABLE `{$table}`");
-            $sqlContent .= "DROP TABLE IF EXISTS `{$table}`;\n";
-            $sqlContent .= $createTable[0]->{'Create Table'}.";\n\n";
+        if ($dbDriver === 'sqlite') {
+            $tables = DB::select("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'");
+            foreach ($tables as $t) {
+                $tableName = $t->name;
+                $createObj = DB::select('SELECT sql FROM sqlite_master WHERE type=\'table\' AND name = ?', [$tableName]);
+                if (! empty($createObj)) {
+                    $sqlContent .= "DROP TABLE IF EXISTS `{$tableName}`;\n";
+                    $sqlContent .= $createObj[0]->sql.";\n\n";
 
-            $rows = DB::table($table)->get();
-            foreach ($rows as $row) {
-                $values = array_map(function ($val) {
-                    if (is_null($val)) return 'NULL';
-                    return DB::getPdo()->quote($val);
-                }, (array) $row);
-
-                $columns = array_map(fn($c) => "`{$c}`", array_keys((array) $row));
-                $sqlContent .= "INSERT INTO `{$table}` (".implode(', ', $columns).") VALUES (".implode(', ', $values).");\n";
+                    $rows = DB::table($tableName)->get();
+                    foreach ($rows as $row) {
+                        $rowArr = (array) $row;
+                        $cols = array_map(fn ($c) => "`{$c}`", array_keys($rowArr));
+                        $vals = array_map(function ($val) {
+                            return is_null($val) ? 'NULL' : DB::getPdo()->quote($val);
+                        }, array_values($rowArr));
+                        $sqlContent .= "INSERT INTO `{$tableName}` (".implode(', ', $cols).') VALUES ('.implode(', ', $vals).");\n";
+                    }
+                    $sqlContent .= "\n";
+                }
             }
-            $sqlContent .= "\n";
+        } else {
+            $tables = DB::select('SHOW TABLES');
+            $dbName = config("database.connections.{$dbConnection}.database");
+            $tableKey = "Tables_in_{$dbName}";
+
+            foreach ($tables as $tableObj) {
+                $table = $tableObj->$tableKey ?? reset($tableObj);
+                $createTable = DB::select("SHOW CREATE TABLE `{$table}`");
+                $sqlContent .= "DROP TABLE IF EXISTS `{$table}`;\n";
+                $sqlContent .= $createTable[0]->{'Create Table'}.";\n\n";
+
+                $rows = DB::table($table)->get();
+                foreach ($rows as $row) {
+                    $rowArr = (array) $row;
+                    $cols = array_map(fn ($c) => "`{$c}`", array_keys($rowArr));
+                    $vals = array_map(function ($val) {
+                        return is_null($val) ? 'NULL' : DB::getPdo()->quote($val);
+                    }, array_values($rowArr));
+                    $sqlContent .= "INSERT INTO `{$table}` (".implode(', ', $cols).') VALUES ('.implode(', ', $vals).");\n";
+                }
+                $sqlContent .= "\n";
+            }
         }
 
         File::put($dbFile, $sqlContent);
         $dbChecksum = hash_file('sha256', $dbFile);
 
-        $this->info("✓ Database dumped: {$dbFile} (SHA256: ".substr($dbChecksum, 0, 16).")");
+        $this->info("✓ Database dumped: {$dbFile} (SHA256: ".substr($dbChecksum, 0, 16).')');
 
         // Verify option
         if ($this->option('verify')) {
             $this->info('Verifying backup file integrity...');
             if (File::size($dbFile) === 0) {
                 $this->error('Backup verification failed: File size is 0 bytes.');
+
                 return 1;
             }
             $this->info('✓ Backup verified successfully.');

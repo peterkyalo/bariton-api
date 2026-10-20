@@ -88,7 +88,12 @@ class User extends Authenticatable implements MustVerifyEmail
 
         $prefs = $this->notification_preferences ?? [];
 
-        return (bool) ($prefs[$key] ?? true);
+        $singular = rtrim($key, 's');
+        $plural = $singular.'s';
+
+        $prefVal = $prefs[$key] ?? $prefs[$plural] ?? $prefs[$singular] ?? null;
+
+        return $prefVal !== null ? (bool) $prefVal : true;
     }
 
     public function getActivitylogOptions(): LogOptions

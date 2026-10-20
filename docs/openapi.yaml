@@ -1,0 +1,358 @@
+openapi: 3.1.0
+info:
+  title: Bariton Music Academy API
+  description: >
+    Production REST API for Bariton Music Academy, Nairobi Kenya.
+    Supports Web SPA (Cookie-based Sanctum sessions) and Mobile Clients (Bearer Personal Access Tokens).
+  version: 1.0.0
+  contact:
+    name: Bariton Engineering
+    email: engineering@bmas.com
+servers:
+  - url: https://api.bmas.com/api/v1
+    description: Production API Server
+  - url: http://localhost:8000/api/v1
+    description: Local Development Server
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Sanctum Personal Access Token
+      description: Use Bearer token for Mobile Apps and non-browser clients.
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: bariton_session
+      description: Stateful SPA cookie authentication via Laravel Sanctum.
+
+security:
+  - bearerAuth: []
+  - cookieAuth: []
+
+paths:
+  /health:
+    get:
+      summary: System Health Check
+      description: Returns health status of database connection, cache, and file storage.
+      security: []
+      responses:
+        '200':
+          description: All systems operational.
+        '503':
+          description: One or more critical subsystems unhealthy.
+
+  /auth/register:
+    post:
+      summary: Register Student Account
+      description: Creates student account with birthdate, privacy consent, and optional guardian info for minors.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email, phone, date_of_birth, password, password_confirmation]
+              properties:
+                name: { type: string }
+                email: { type: string, format: email }
+                phone: { type: string, example: "+254712345678" }
+                date_of_birth: { type: string, format: date }
+                password: { type: string, format: password }
+                password_confirmation: { type: string }
+                guardian_name: { type: string }
+                guardian_email: { type: string, format: email }
+      responses:
+        '201':
+          description: Account created.
+
+  /auth/login:
+    post:
+      summary: Authenticate User
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string, format: password }
+      responses:
+        '200':
+          description: Logged in or 2FA challenge required.
+
+  /auth/token:
+    post:
+      summary: Issue Personal Access Token for Mobile Apps
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password, device_name]
+              properties:
+                email: { type: string }
+                password: { type: string }
+                device_name: { type: string, example: "iPhone 15 Pro - Bariton App" }
+                two_factor_code: { type: string }
+      responses:
+        '200':
+          description: Token generated.
+
+  /courses:
+    get:
+      summary: Public Course Catalog
+      security: []
+      responses:
+        '200':
+          description: List of active published courses.
+
+  /courses/{slug}:
+    get:
+      summary: Course Syllabus & Pricing Details
+      security: []
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Course details with modules, lessons, and dual pricing.
+
+  /events:
+    get:
+      summary: Physical Bootcamps & Workshops Schedule
+      security: []
+      responses:
+        '200':
+          description: List of upcoming physical events with seat availability.
+
+  /events/{slug}/book:
+    post:
+      summary: Hold a Physical Event Seat
+      description: Holds a seat with database concurrency locking for online hold duration.
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [booking_type]
+              properties:
+                booking_type:
+                  type: string
+                  enum: [training_only, training_and_accommodation]
+      responses:
+        '201':
+          description: Seat held with countdown timer and checkout order.
+
+  /tutoring/packages:
+    get:
+      summary: Public 1-on-1 Tutoring Packages
+      security: []
+      responses:
+        '200':
+          description: List of tutoring credit bundles with validity days.
+
+  /tutoring/instructors/{instructorId}/slots:
+    get:
+      summary: Available Tutoring Slots
+      security: []
+      parameters:
+        - name: instructorId
+          in: path
+          required: true
+          schema: { type: integer }
+        - name: date
+          in: query
+          required: false
+          schema: { type: string, format: date }
+      responses:
+        '200':
+          description: Open 60-minute teaching slots evaluated in Africa/Nairobi time.
+
+  /student/tutoring/book:
+    post:
+      summary: Book Tutoring Session with Package Credit
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [student_tutoring_package_id, instructor_id, scheduled_start, scheduled_end, mode]
+              properties:
+                student_tutoring_package_id: { type: integer }
+                instructor_id: { type: integer }
+                course_id: { type: integer }
+                scheduled_start: { type: string, format: date-time }
+                scheduled_end: { type: string, format: date-time }
+                mode: { type: string, enum: [zoom, google_meet, in_person] }
+      responses:
+        '201':
+          description: Session booked and credit deducted.
+
+  /student/tutoring/sessions/{uuid}/reschedule:
+    post:
+      summary: Reschedule Tutoring Session
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [scheduled_start, scheduled_end]
+              properties:
+                scheduled_start: { type: string, format: date-time }
+                scheduled_end: { type: string, format: date-time }
+                waive_notice: { type: boolean }
+                waiver_reason: { type: string }
+      responses:
+        '200':
+          description: Session rescheduled.
+
+  /student/notification-preferences:
+    get:
+      summary: Get Student Notification Preferences
+      responses:
+        '200':
+          description: Current user preferences and mandatory channels.
+    put:
+      summary: Update Notification Preferences
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                event_reminders: { type: boolean }
+                session_reminders: { type: boolean }
+                assignment_graded: { type: boolean }
+                marketing: { type: boolean }
+      responses:
+        '200':
+          description: Preferences updated.
+
+  /admin/notification-templates:
+    get:
+      summary: List Notification Templates
+      responses:
+        '200':
+          description: List of message templates.
+
+  /admin/notification-templates/{key}:
+    put:
+      summary: Update Message Template
+      parameters:
+        - name: key
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email_subject: { type: string }
+                email_body: { type: string }
+                sms_body: { type: string }
+                channel: { type: string, enum: [email, sms, both] }
+                is_active: { type: boolean }
+      responses:
+        '200':
+          description: Template updated.
+
+  /admin/notification-templates/{key}/test-send:
+    post:
+      summary: Dispatch Test Notification
+      parameters:
+        - name: key
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Test email and SMS sent.
+
+  /dashboards/admin:
+    get:
+      summary: Executive Admin Analytics
+      parameters:
+        - name: from
+          in: query
+          schema: { type: string, format: date }
+        - name: to
+          in: query
+          schema: { type: string, format: date }
+      responses:
+        '200':
+          description: Revenue by method/item, enrollments, pass rates, event occupancy, tutoring utilization.
+
+  /dashboards/admin/export-csv:
+    get:
+      summary: Export Executive Analytics CSV
+      responses:
+        '200':
+          description: Streamed CSV file download.
+          content:
+            text/csv:
+              schema: { type: string, format: binary }
+
+  /dashboards/finance:
+    get:
+      summary: Finance Directorate Dashboard
+      parameters:
+        - name: from
+          in: query
+          schema: { type: string, format: date }
+        - name: to
+          in: query
+          schema: { type: string, format: date }
+      responses:
+        '200':
+          description: Payments, cash entries, pending refunds, credit notes, daily totals.
+
+  /dashboards/finance/export-csv:
+    get:
+      summary: Export Finance Ledger CSV
+      responses:
+        '200':
+          description: Streamed CSV file download.
+          content:
+            text/csv:
+              schema: { type: string, format: binary }
+
+  /dashboards/instructor:
+    get:
+      summary: Instructor Studio & Grading Dashboard
+      responses:
+        '200':
+          description: Assignment grading queue, exam reviews, upcoming tutoring sessions.
+
+  /dashboards/coordinator:
+    get:
+      summary: Coordinator Events & Check-In Dashboard
+      responses:
+        '200':
+          description: Upcoming physical bootcamps, capacity, accommodation requests, check-in stats.
