@@ -42,6 +42,11 @@ class RolesAndPermissionsSeeder extends Seeder
             'events.checkin',
             'events.remind',
             'events.book',
+            'tutoring.view',
+            'tutoring.book',
+            'tutoring.manage-availability',
+            'tutoring.mark-attendance',
+            'tutoring.manage-packages',
         ];
 
         foreach ($permissions as $permission) {
@@ -60,6 +65,9 @@ class RolesAndPermissionsSeeder extends Seeder
             'courses.create',
             'courses.update',
             'events.view',
+            'tutoring.view',
+            'tutoring.manage-availability',
+            'tutoring.mark-attendance',
         ]);
 
         $student = Role::firstOrCreate(['name' => 'student', 'guard_name' => 'web']);
@@ -69,6 +77,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'courses.enroll',
             'events.view',
             'events.book',
+            'tutoring.view',
+            'tutoring.book',
         ]);
 
         $financeManager = Role::firstOrCreate(['name' => 'finance_manager', 'guard_name' => 'web']);

@@ -205,6 +205,29 @@ class OrderFulfillmentService
             if ($booking) {
                 app(EventBookingService::class)->processPaymentConfirmation($booking, $order, $payment);
             }
+        } elseif ($item->item_type === 'tutoring_package') {
+            $package = \App\Models\TutoringPackage::find($item->item_id);
+            if ($package) {
+                $validityDays = $package->validity_days ?: 60;
+                $studentPackage = \App\Models\StudentTutoringPackage::create([
+                    'user_id' => $user->id,
+                    'order_id' => $order->id,
+                    'tutoring_package_id' => $package->id,
+                    'instructor_id' => $package->instructor_id,
+                    'course_id' => $package->course_id,
+                    'total_credits' => $package->session_count,
+                    'used_credits' => 0,
+                    'remaining_credits' => $package->session_count,
+                    'expires_at' => now()->addDays($validityDays),
+                    'status' => 'active',
+                ]);
+
+                activity()
+                    ->performedOn($studentPackage)
+                    ->causedBy($user)
+                    ->withProperties(['order_id' => $order->id, 'credits' => $package->session_count])
+                    ->log('Tutoring package credits activated');
+            }
         }
     }
 }

@@ -75,6 +75,17 @@ class OrderController extends Controller
             $priceKes = (int) Setting::getValue('exam_retake_package_price_kes', 500000);
             $title = "Exam Retake Package (3 Additional Attempts): {$course->title}";
             $meta = ['course_id' => $course->id];
+        } elseif ($itemType === 'tutoring_package') {
+            $package = \App\Models\TutoringPackage::findOrFail($itemId);
+            $priceKes = $package->price_kes;
+            $title = "Tutoring Package ({$package->session_count} Sessions): {$package->title}";
+            $meta = [
+                'tutoring_package_id' => $package->id,
+                'session_count' => $package->session_count,
+                'validity_days' => $package->validity_days,
+                'instructor_id' => $package->instructor_id,
+                'course_id' => $package->course_id,
+            ];
         }
 
         // Snapshot settings
