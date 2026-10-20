@@ -14,6 +14,8 @@ class PaymentManager
         return match ($driver) {
             'mpesa' => app(MpesaPaymentGateway::class),
             'cash' => app(CashPaymentGateway::class),
+            'stripe', 'card' => app(StripePaymentGateway::class),
+            'paypal' => app(PayPalPaymentGateway::class),
             default => throw new InvalidArgumentException("Unsupported payment gateway: {$driver}"),
         };
     }

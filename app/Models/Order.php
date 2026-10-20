@@ -32,6 +32,8 @@ class Order extends Model
         'payment_method',
         'paid_at',
         'expires_at',
+        'refund_window_days',
+        'refund_status',
         'notes',
     ];
 
@@ -45,6 +47,7 @@ class Order extends Model
             'total_usd_cents' => 'integer',
             'paid_at' => 'datetime',
             'expires_at' => 'datetime',
+            'refund_window_days' => 'integer',
         ];
     }
 
@@ -60,13 +63,16 @@ class Order extends Model
             if (empty($order->expires_at)) {
                 $order->expires_at = now()->addMinutes(30);
             }
+            if (empty($order->refund_window_days)) {
+                $order->refund_window_days = 14;
+            }
         });
     }
 
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['status', 'payment_method', 'paid_at', 'total_kes'])
+            ->logOnly(['status', 'payment_method', 'paid_at', 'total_kes', 'refund_status'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
     }
@@ -94,6 +100,16 @@ class Order extends Model
     public function receipt(): HasOne
     {
         return $this->hasOne(Receipt::class)->latestOfMany();
+    }
+
+    public function refundRequests(): HasMany
+    {
+        return $this->hasMany(RefundRequest::class);
+    }
+
+    public function creditNotes(): HasMany
+    {
+        return $this->hasMany(CreditNote::class);
     }
 
     public function isPending(): bool

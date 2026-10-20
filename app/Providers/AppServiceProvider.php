@@ -18,6 +18,11 @@ class AppServiceProvider extends ServiceProvider
             ReceiptIssuerInterface::class,
             StandardPdfReceiptIssuer::class
         );
+
+        $this->app->bind(
+            \App\Services\Receipts\CreditNoteIssuerInterface::class,
+            \App\Services\Receipts\StandardPdfCreditNoteIssuer::class
+        );
     }
 
     /**

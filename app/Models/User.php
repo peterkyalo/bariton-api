@@ -109,6 +109,16 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Receipt::class);
     }
 
+    public function refundRequests(): HasMany
+    {
+        return $this->hasMany(RefundRequest::class);
+    }
+
+    public function creditNotes(): HasMany
+    {
+        return $this->hasMany(CreditNote::class);
+    }
+
     public function isMinor(): bool
     {
         if (! $this->date_of_birth) {
