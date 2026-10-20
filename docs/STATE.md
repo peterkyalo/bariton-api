@@ -1,6 +1,6 @@
 # Bariton API State & Architecture
 
-**Current Phase Completed**: Phase 3a (Orders, Cash & M-Pesa payments, order checkout, gapless sequential numbered PDF receipts, finance reception).  
+**Current Phase Completed**: Phase 3b (Card/Stripe in KES, PayPal in USD, and Refunds lifecycle with sequential Credit Notes BMAS-CRN-XXXXXX).  
 **Last Updated**: October 2026
 
 ---
@@ -14,15 +14,20 @@
 - **Authorization**:
   - Spatie Laravel-Permission with strict permission checks.
   - Controller code never checks role names directly; all authorizations route through Policies and permission middleware (`permission:xyz`).
-- **Audit Logging**: Spatie Activitylog tracking model mutations on `User`, `Course`, and `Order`.
+- **Audit Logging**: Spatie Activitylog tracking model mutations on `User`, `Course`, `Order`, `RefundRequest`, and `CreditNote`.
 - **Media Streaming**:
   - `MediaStreamService` with support for HTTP 206 Partial Content range requests (`Accept-Ranges: bytes`) for smooth audio streaming and seeking.
   - Temporary signed routes via `URL::temporarySignedRoute()`.
-- **Payment & Receipt Architecture (Phase 3a)**:
-  - `PaymentGatewayInterface` with driver-based `PaymentManager` resolving `mpesa`, `cash`, etc.
-  - Safaricom Daraja STK Push with tokenized callback verification and `QueryPendingMpesaPaymentsJob` fallback reconciler.
+- **Payment & Receipt Architecture (Phase 3a & 3b)**:
+  - `PaymentGatewayInterface` with driver-based `PaymentManager` resolving `mpesa`, `card` / `stripe`, `paypal`, and `cash`.
+  - Stripe Payment Gateway: Charges in KES with 3D Secure 2.0 simulation, idempotent request headers (`Idempotency-Key`), webhook verification (`Stripe-Signature`), and card refund execution.
+  - PayPal Payment Gateway: Charges international students in USD at the order's locked exchange rate, capture confirmation, and USD refunds.
   - Sequential Receipt Generation (`StandardPdfReceiptIssuer`): Uses `DB::table('receipt_counters')->where('key', 'main')->lockForUpdate()` inside database transactions to guarantee strictly gapless sequential receipt numbers (`BMAS-RCT-000001`, `BMAS-RCT-000002`, ...).
-  - DOMPDF receipt rendering (`barryvdh/laravel-dompdf`) saved to private storage disk.
+  - Sequential Credit Note Generation (`StandardPdfCreditNoteIssuer`): Row-locked counter (`key = 'credit_note'`, prefix: `BMAS-CRN-000001`) with formal statutory Credit Note PDF rendering.
+  - Refund Lifecycle (`RefundService`):
+    - Policy validation: 14-day purchase window (`refund_window_days`).
+    - Completion blockers: Rejects refund request if student has earned a Certificate of Completion, or if module/course progress is >= 50%.
+    - Access revocation: Revokes access only to the refunded module (`EnrollmentModule`), recalculates parent enrollment progress (`recalculateEnrollmentProgress`), and generates an official Credit Note.
 
 ---
 
