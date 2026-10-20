@@ -2,12 +2,14 @@
 
 namespace Database\Seeders;
 
+use App\Models\Assignment;
 use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\EnrollmentModule;
 use App\Models\Lesson;
 use App\Models\LessonProgress;
 use App\Models\Module;
+use App\Models\Rubric;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Storage;
@@ -222,5 +224,91 @@ class CoursesSeeder extends Seeder
                 );
             }
         }
+
+        // 6. Seed Reusable Rubric Template
+        $rubric = Rubric::updateOrCreate(
+            ['title' => 'Piano Conservatory Repertoire Assessment Rubric'],
+            [
+                'instructor_id' => $instructor?->id,
+                'description' => 'Comprehensive evaluation rubric for classical piano technique, rhythm, and artistic interpretation.',
+                'total_points' => 100,
+                'is_template' => true,
+            ]
+        );
+
+        if ($rubric->criteria()->count() === 0) {
+            $crit1 = $rubric->criteria()->create([
+                'title' => 'Rhythm & Tempo Stability',
+                'description' => 'Steady pulse, accurate subdivision, and metronomic precision.',
+                'max_points' => 25,
+                'order' => 1,
+            ]);
+            $crit1->levels()->create(['title' => 'Distinction (Flawless)', 'points' => 25, 'description' => 'Impeccable pulse with natural rubato control.', 'order' => 1]);
+            $crit1->levels()->create(['title' => 'Merit (Consistent)', 'points' => 20, 'description' => 'Minor hesitation without rhythm breakdown.', 'order' => 2]);
+            $crit1->levels()->create(['title' => 'Pass (Acceptable)', 'points' => 15, 'description' => 'Noticeable rushing or dragging in transitions.', 'order' => 3]);
+            $crit1->levels()->create(['title' => 'Developing', 'points' => 5, 'description' => 'Erratic tempo and missed subdivisions.', 'order' => 4]);
+
+            $crit2 = $rubric->criteria()->create([
+                'title' => 'Note Accuracy & Fingering',
+                'description' => 'Correct pitch execution and standard conservatory fingerings.',
+                'max_points' => 25,
+                'order' => 2,
+            ]);
+            $crit2->levels()->create(['title' => 'Distinction (100% Accurate)', 'points' => 25, 'description' => 'Zero wrong notes; fluid fingering switches.', 'order' => 1]);
+            $crit2->levels()->create(['title' => 'Merit (Minor Slips)', 'points' => 20, 'description' => '1-2 isolated false notes recovered quickly.', 'order' => 2]);
+            $crit2->levels()->create(['title' => 'Pass (Moderate Errors)', 'points' => 15, 'description' => 'Several pitch errors but progression maintained.', 'order' => 3]);
+            $crit2->levels()->create(['title' => 'Developing', 'points' => 5, 'description' => 'Frequent stops and incorrect fingerings.', 'order' => 4]);
+
+            $crit3 = $rubric->criteria()->create([
+                'title' => 'Tone, Dynamics & Articulation',
+                'description' => 'Balance between hands, cantabile melody, and dynamics (p to ff).',
+                'max_points' => 25,
+                'order' => 3,
+            ]);
+            $crit3->levels()->create(['title' => 'Distinction (Artistic)', 'points' => 25, 'description' => 'Deep expressive tone with crystal clear voicing.', 'order' => 1]);
+            $crit3->levels()->create(['title' => 'Merit (Expressive)', 'points' => 20, 'description' => 'Good dynamic contrast with clear melody.', 'order' => 2]);
+            $crit3->levels()->create(['title' => 'Pass (Flat Dynamics)', 'points' => 15, 'description' => 'Audible notes but lacking dynamic hierarchy.', 'order' => 3]);
+            $crit3->levels()->create(['title' => 'Developing', 'points' => 5, 'description' => 'Harsh tone or unbalanced left-hand dominance.', 'order' => 4]);
+
+            $crit4 = $rubric->criteria()->create([
+                'title' => 'Posture, Hand Arch & Ergonomics',
+                'description' => 'Curved fingers, relaxed wrists, erect spine, and weight transfer.',
+                'max_points' => 25,
+                'order' => 4,
+            ]);
+            $crit4->levels()->create(['title' => 'Distinction (Exemplary)', 'points' => 25, 'description' => 'Perfect relaxed wrist drape and finger arches.', 'order' => 1]);
+            $crit4->levels()->create(['title' => 'Merit (Good Form)', 'points' => 20, 'description' => 'Relaxed posture with slight wrist tension.', 'order' => 2]);
+            $crit4->levels()->create(['title' => 'Pass (Tension Present)', 'points' => 15, 'description' => 'Flat fingers or elevated shoulders observed.', 'order' => 3]);
+            $crit4->levels()->create(['title' => 'Developing', 'points' => 5, 'description' => 'Collapsed arches and excessive physical tension.', 'order' => 4]);
+        }
+
+        // 7. Seed Assignments for Module 1 & Module 2
+        Assignment::updateOrCreate(
+            ['module_id' => $module1->id, 'slug' => 'level-1-piano-posture-recording'],
+            [
+                'rubric_id' => $rubric->id,
+                'title' => 'Level 1: Five-Finger Patterns & Posture Video Assessment',
+                'instructions' => "Record a 2 to 3-minute video showing your complete posture, hand position at the keyboard, and performance of the C Major and G Major five-finger pattern exercises. Ensure the camera angle shows both your hands and upper body profile clearly.\n\n### Requirements:\n1. Unedited continuous performance.\n2. State your name and exercise title clearly before playing.\n3. Observe hand arch and relaxed wrist releases at the end of each pattern.",
+                'submission_type' => 'video',
+                'accepted_formats' => ['mp4', 'webm'],
+                'max_file_size_mb' => 200,
+                'order' => 1,
+                'is_published' => true,
+            ]
+        );
+
+        Assignment::updateOrCreate(
+            ['module_id' => $module2->id, 'slug' => 'level-2-major-scales-assessment'],
+            [
+                'rubric_id' => $rubric->id,
+                'title' => 'Level 2: Major Scales & Finger Crossings Performance Video',
+                'instructions' => 'Perform C Major, G Major, and D Major scales hands together, two octaves ascending and descending, at a minimum tempo of 60 BPM with metronome audible. Focus on thumb-under fluidity without wrist jerking.',
+                'submission_type' => 'video',
+                'accepted_formats' => ['mp4', 'webm'],
+                'max_file_size_mb' => 200,
+                'order' => 1,
+                'is_published' => true,
+            ]
+        );
     }
 }

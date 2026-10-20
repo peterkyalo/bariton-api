@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\v1;
 
 use App\Http\Controllers\Controller;
+use App\Models\AssignmentSubmission;
 use App\Models\Lesson;
 use App\Services\MediaStreamService;
 use Illuminate\Http\Request;
@@ -27,5 +28,19 @@ class MediaStreamController extends Controller
         $lesson = Lesson::where('uuid', $uuid)->firstOrFail();
 
         return $this->mediaStreamService->streamLessonFile($lesson, $request);
+    }
+
+    /**
+     * Secure media streaming endpoint for student assignment submissions.
+     */
+    public function streamSubmission(Request $request, string $uuid): Response
+    {
+        if (! $request->hasValidSignature()) {
+            abort(401, 'Invalid or expired media signature.');
+        }
+
+        $submission = AssignmentSubmission::where('uuid', $uuid)->firstOrFail();
+
+        return $this->mediaStreamService->streamPath($submission->file_path, $submission->original_filename, $request);
     }
 }

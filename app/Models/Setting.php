@@ -52,4 +52,11 @@ class Setting extends Model
             default => (string) $raw,
         };
     }
+
+    public static function getValue(string $key, mixed $default = null): mixed
+    {
+        $setting = static::where('key', $key)->first();
+
+        return $setting ? $setting->typed_value : $default;
+    }
 }

@@ -20,6 +20,10 @@ class Enrollment extends Model
         'path_type',
         'status',
         'progress_percent',
+        'assignment_pass_mark_percent',
+        'exam_pass_mark_percent',
+        'exam_attempt_limit',
+        'exam_wait_time_hours',
         'completed_at',
     ];
 
@@ -27,6 +31,10 @@ class Enrollment extends Model
     {
         return [
             'progress_percent' => 'decimal:2',
+            'assignment_pass_mark_percent' => 'integer',
+            'exam_pass_mark_percent' => 'integer',
+            'exam_attempt_limit' => 'integer',
+            'exam_wait_time_hours' => 'integer',
             'completed_at' => 'datetime',
         ];
     }
@@ -65,6 +73,11 @@ class Enrollment extends Model
     public function lessonProgress(): HasMany
     {
         return $this->hasMany(LessonProgress::class);
+    }
+
+    public function assignmentSubmissions(): HasMany
+    {
+        return $this->hasMany(AssignmentSubmission::class);
     }
 
     public function totalPaidForModulesKes(): int

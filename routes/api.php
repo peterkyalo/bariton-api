@@ -7,15 +7,19 @@ use App\Http\Controllers\Api\v1\Admin\RoleController;
 use App\Http\Controllers\Api\v1\Admin\SettingController;
 use App\Http\Controllers\Api\v1\Admin\UserController;
 use App\Http\Controllers\Api\v1\AuthController;
+use App\Http\Controllers\Api\v1\ChunkedUploadController;
 use App\Http\Controllers\Api\v1\CourseCatalogController;
 use App\Http\Controllers\Api\v1\FinancePaymentController;
 use App\Http\Controllers\Api\v1\InstructorCourseController;
+use App\Http\Controllers\Api\v1\InstructorGradingController;
 use App\Http\Controllers\Api\v1\MediaStreamController;
 use App\Http\Controllers\Api\v1\OrderController;
 use App\Http\Controllers\Api\v1\PaymentController;
 use App\Http\Controllers\Api\v1\ProfileController;
 use App\Http\Controllers\Api\v1\PublicSettingController;
 use App\Http\Controllers\Api\v1\RefundController;
+use App\Http\Controllers\Api\v1\RubricController;
+use App\Http\Controllers\Api\v1\StudentAssignmentController;
 use App\Http\Controllers\Api\v1\StudentCourseController;
 use App\Http\Middleware\EnsureTwoFactorEnabled;
 use App\Http\Middleware\EnsureUserIsActive;
@@ -51,6 +55,7 @@ Route::get('courses/{slug}/preview/{lessonUuid}', [CourseCatalogController::clas
 
 // Signed Media Streaming
 Route::get('media/lessons/{uuid}', [MediaStreamController::class, 'stream'])->name('media.lessons.stream');
+Route::get('media/submissions/{uuid}', [MediaStreamController::class, 'streamSubmission'])->name('media.submissions.stream');
 
 // Payment Webhooks
 Route::post('payments/mpesa/callback/{token}', [PaymentController::class, 'mpesaCallback']);
@@ -96,6 +101,17 @@ Route::middleware(['auth:sanctum', EnsureUserIsActive::class, EnsureTwoFactorEna
         Route::post('orders/{uuid}/refund-requests', [RefundController::class, 'store']);
         Route::get('refund-requests', [RefundController::class, 'studentIndex']);
         Route::get('credit-notes/{uuid}/download', [RefundController::class, 'downloadCreditNote']);
+        Route::get('modules/{moduleUuid}/assignments', [StudentAssignmentController::class, 'moduleAssignments']);
+        Route::get('assignments/{uuid}', [StudentAssignmentController::class, 'show']);
+        Route::post('assignments/{uuid}/submit', [StudentAssignmentController::class, 'submit']);
+    });
+
+    // Resumable Chunked Uploads
+    Route::prefix('uploads/chunked')->group(function () {
+        Route::post('initiate', [ChunkedUploadController::class, 'initiate']);
+        Route::post('{uuid}/chunk', [ChunkedUploadController::class, 'uploadChunk']);
+        Route::get('{uuid}/status', [ChunkedUploadController::class, 'status']);
+        Route::post('{uuid}/complete', [ChunkedUploadController::class, 'complete']);
     });
 
     // Orders & Payments
@@ -128,6 +144,12 @@ Route::middleware(['auth:sanctum', EnsureUserIsActive::class, EnsureTwoFactorEna
         Route::post('modules/{module}/lessons', [InstructorCourseController::class, 'createLesson']);
         Route::put('lessons/{lesson}', [InstructorCourseController::class, 'updateLesson']);
         Route::delete('lessons/{lesson}', [InstructorCourseController::class, 'deleteLesson']);
+
+        // Assessment Grading & Rubrics
+        Route::get('grading', [InstructorGradingController::class, 'queue']);
+        Route::get('grading/{uuid}', [InstructorGradingController::class, 'show']);
+        Route::post('grading/{uuid}/grade', [InstructorGradingController::class, 'grade']);
+        Route::apiResource('rubrics', RubricController::class);
     });
 
     // Admin Endpoints

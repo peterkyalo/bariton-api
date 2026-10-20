@@ -25,6 +25,92 @@ class MediaStreamService
     }
 
     /**
+     * Generate a temporary signed route URL to stream student assignment submission media.
+     */
+    public function generateSignedSubmissionStreamUrl(string $submissionUuid, int $expiresMinutes = 120): string
+    {
+        return URL::temporarySignedRoute(
+            'media.submissions.stream',
+            now()->addMinutes($expiresMinutes),
+            ['uuid' => $submissionUuid]
+        );
+    }
+
+    /**
+     * Stream any stored file with HTTP Range support.
+     */
+    public function streamPath(string $filePath, ?string $filename, Request $request, string $disk = 'local'): StreamedResponse|BinaryFileResponse
+    {
+        if (! $filePath || ! Storage::disk($disk)->exists($filePath)) {
+            throw new NotFoundHttpException('Requested media file could not be found.');
+        }
+
+        $fullPath = Storage::disk($disk)->path($filePath);
+        $fileSize = filesize($fullPath);
+        $mimeType = Storage::disk($disk)->mimeType($filePath) ?: 'application/octet-stream';
+        $safeName = $filename ?: basename($filePath);
+
+        $range = $request->header('Range');
+
+        if (! $range) {
+            $headers = [
+                'Content-Type' => $mimeType,
+                'Content-Length' => (string) $fileSize,
+                'Accept-Ranges' => 'bytes',
+                'Content-Disposition' => 'inline; filename="'.$safeName.'"',
+                'Cache-Control' => 'private, no-cache, must-revalidate',
+            ];
+
+            return response()->stream(function () use ($fullPath) {
+                $stream = fopen($fullPath, 'rb');
+                fpassthru($stream);
+                fclose($stream);
+            }, 200, $headers);
+        }
+
+        if (! preg_match('/bytes=(\d+)-(\d+)?/', $range, $matches)) {
+            return response('', 416, ['Content-Range' => "bytes */{$fileSize}"]);
+        }
+
+        $start = (int) $matches[1];
+        $end = isset($matches[2]) && $matches[2] !== '' ? (int) $matches[2] : $fileSize - 1;
+
+        if ($start > $end || $start >= $fileSize) {
+            return response('', 416, ['Content-Range' => "bytes */{$fileSize}"]);
+        }
+
+        $end = min($end, $fileSize - 1);
+        $length = $end - $start + 1;
+
+        $headers = [
+            'Content-Type' => $mimeType,
+            'Content-Length' => (string) $length,
+            'Content-Range' => "bytes {$start}-{$end}/{$fileSize}",
+            'Accept-Ranges' => 'bytes',
+            'Content-Disposition' => 'inline; filename="'.$safeName.'"',
+            'Cache-Control' => 'private, no-cache, must-revalidate',
+        ];
+
+        return response()->stream(function () use ($fullPath, $start, $length) {
+            $stream = fopen($fullPath, 'rb');
+            fseek($stream, $start);
+
+            $bufferSize = 1024 * 64;
+            $bytesSent = 0;
+
+            while (! feof($stream) && $bytesSent < $length && connection_status() === 0) {
+                $readLength = min($bufferSize, $length - $bytesSent);
+                $buffer = fread($stream, $readLength);
+                echo $buffer;
+                flush();
+                $bytesSent += strlen($buffer);
+            }
+
+            fclose($stream);
+        }, 206, $headers);
+    }
+
+    /**
      * Stream a lesson file with full support for HTTP Range requests (RFC 7233).
      * Necessary for smooth audio seeking and progressive buffering.
      */
