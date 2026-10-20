@@ -6,6 +6,7 @@ use App\Models\Assignment;
 use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\EnrollmentModule;
+use App\Models\Exam;
 use App\Models\Lesson;
 use App\Models\LessonProgress;
 use App\Models\Module;
@@ -312,7 +313,7 @@ class CoursesSeeder extends Seeder
         );
 
         // 8. Seed Course Final Exam (Phase 4b)
-        $exam = \App\Models\Exam::updateOrCreate(
+        $exam = Exam::updateOrCreate(
             ['course_id' => $course->id, 'slug' => 'classical-piano-mastery-final-examination'],
             [
                 'title' => 'Classical Piano Mastery Final Certification Examination',

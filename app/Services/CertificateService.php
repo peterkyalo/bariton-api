@@ -241,6 +241,18 @@ class CertificateService
     public function renderAndSavePdf(Certificate $certificate): void
     {
         try {
+            if (empty($certificate->pdf_path)) {
+                $certificate->pdf_path = "certificates/{$certificate->certificate_code}.pdf";
+                $certificate->pdf_disk = config('filesystems.private_disk', 'local');
+                $certificate->saveQuietly();
+            }
+
+            if (empty($certificate->qr_code_svg)) {
+                $verifyBaseUrl = config('services.certificate.verify_base_url', 'https://app.bmas.com/verify');
+                $certificate->qr_code_svg = $this->generateQrCodeSvg(rtrim($verifyBaseUrl, '/') . '/' . $certificate->certificate_code);
+                $certificate->saveQuietly();
+            }
+
             $qrBase64 = $certificate->qr_code_svg ? base64_encode($certificate->qr_code_svg) : '';
             $pdf = Pdf::loadView('certificates.pdf', [
                 'certificate' => $certificate,
