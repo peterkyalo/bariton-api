@@ -34,6 +34,10 @@ return Application::configure(basePath: dirname(__DIR__))
             StartSession::class,
         ]);
 
+        $middleware->api(append: [
+            \App\Http\Middleware\SecurityHeadersMiddleware::class,
+        ]);
+
         $middleware->alias([
             'role' => RoleMiddleware::class,
             'permission' => PermissionMiddleware::class,
