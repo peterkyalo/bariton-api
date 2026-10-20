@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\v1\FinancePaymentController;
 use App\Http\Controllers\Api\v1\InstructorCourseController;
 use App\Http\Controllers\Api\v1\InstructorExamGradingController;
 use App\Http\Controllers\Api\v1\InstructorGradingController;
+use App\Http\Controllers\Api\v1\InstructorTutoringController;
 use App\Http\Controllers\Api\v1\MediaStreamController;
 use App\Http\Controllers\Api\v1\OrderController;
 use App\Http\Controllers\Api\v1\PaymentController;
@@ -29,6 +30,8 @@ use App\Http\Controllers\Api\v1\StudentAssignmentController;
 use App\Http\Controllers\Api\v1\StudentCourseController;
 use App\Http\Controllers\Api\v1\StudentEventBookingController;
 use App\Http\Controllers\Api\v1\StudentExamController;
+use App\Http\Controllers\Api\v1\StudentTutoringController;
+use App\Http\Controllers\Api\v1\TutoringPackageController;
 use App\Http\Middleware\EnsureTwoFactorEnabled;
 use App\Http\Middleware\EnsureUserIsActive;
 use Illuminate\Support\Facades\Route;
@@ -64,6 +67,11 @@ Route::get('courses/{slug}/preview/{lessonUuid}', [CourseCatalogController::clas
 // Public Physical Events (Phase 6)
 Route::get('events', [EventController::class, 'index']);
 Route::get('events/{slug}', [EventController::class, 'show']);
+
+// Public Tutoring Packages & Open Slots (Phase 7)
+Route::get('tutoring/packages', [TutoringPackageController::class, 'index']);
+Route::get('tutoring/packages/{slug}', [TutoringPackageController::class, 'show']);
+Route::get('tutoring/instructors/{instructorId}/slots', [StudentTutoringController::class, 'getAvailableSlots']);
 
 // Signed Media Streaming
 Route::get('media/lessons/{uuid}', [MediaStreamController::class, 'stream'])->name('media.lessons.stream');
@@ -138,6 +146,12 @@ Route::middleware(['auth:sanctum', EnsureUserIsActive::class, EnsureTwoFactorEna
         Route::get('events/bookings/{uuid}', [StudentEventBookingController::class, 'show']);
         Route::post('events/bookings/{uuid}/refund', [StudentEventBookingController::class, 'requestRefund']);
         Route::get('events/waitlists', [StudentEventBookingController::class, 'myWaitlists']);
+
+        // One-on-One Tutoring (Phase 7)
+        Route::get('tutoring/packages', [StudentTutoringController::class, 'myPackages']);
+        Route::post('tutoring/book', [StudentTutoringController::class, 'book']);
+        Route::get('tutoring/sessions', [StudentTutoringController::class, 'mySessions']);
+        Route::post('tutoring/sessions/{uuid}/reschedule', [StudentTutoringController::class, 'reschedule']);
     });
 
     // Event Online Holds & Waitlists (Phase 6)
@@ -210,10 +224,25 @@ Route::middleware(['auth:sanctum', EnsureUserIsActive::class, EnsureTwoFactorEna
         Route::get('exam-grading', [InstructorExamGradingController::class, 'queue']);
         Route::get('exam-grading/{uuid}', [InstructorExamGradingController::class, 'show']);
         Route::post('exam-grading/{uuid}/grade', [InstructorExamGradingController::class, 'grade']);
+
+        // One-on-One Tutoring Management (Phase 7)
+        Route::get('tutoring/availability', [InstructorTutoringController::class, 'getAvailability']);
+        Route::put('tutoring/availability', [InstructorTutoringController::class, 'setAvailability']);
+        Route::get('tutoring/blocked-dates', [InstructorTutoringController::class, 'getBlockedDates']);
+        Route::post('tutoring/blocked-dates', [InstructorTutoringController::class, 'addBlockedDate']);
+        Route::delete('tutoring/blocked-dates/{id}', [InstructorTutoringController::class, 'deleteBlockedDate']);
+        Route::get('tutoring/sessions', [InstructorTutoringController::class, 'sessions']);
+        Route::put('tutoring/sessions/{uuid}/details', [InstructorTutoringController::class, 'updateSessionDetails']);
+        Route::post('tutoring/sessions/{uuid}/cancel', [InstructorTutoringController::class, 'cancelSession']);
+        Route::post('tutoring/sessions/{uuid}/attendance', [InstructorTutoringController::class, 'markAttendance']);
     });
 
     // Admin Endpoints
     Route::prefix('admin')->group(function () {
+        // Tutoring Packages (Phase 7)
+        Route::post('tutoring/packages', [TutoringPackageController::class, 'store']);
+        Route::put('tutoring/packages/{id}', [TutoringPackageController::class, 'update']);
+
         // Certificates Management (Phase 4b)
         Route::get('certificates', [AdminCertificateController::class, 'index']);
         Route::post('certificates/{uuid}/revoke', [AdminCertificateController::class, 'revoke']);
