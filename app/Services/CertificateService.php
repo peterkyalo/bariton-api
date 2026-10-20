@@ -260,7 +260,7 @@ class CertificateService
 
             if (empty($certificate->qr_code_svg)) {
                 $verifyBaseUrl = config('services.certificate.verify_base_url', 'https://app.bmas.com/verify');
-                $certificate->qr_code_svg = $this->generateQrCodeSvg(rtrim($verifyBaseUrl, '/') . '/' . $certificate->certificate_code);
+                $certificate->qr_code_svg = $this->generateQrCodeSvg(rtrim($verifyBaseUrl, '/').'/'.$certificate->certificate_code);
                 $certificate->saveQuietly();
             }
 
