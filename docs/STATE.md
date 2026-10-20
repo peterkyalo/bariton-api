@@ -1,6 +1,6 @@
 # Bariton API State & Architecture
 
-**Current Phase Completed**: Phase 4b (Comprehensive final exams, debounced autosave, server-enforced timer, performance recording grace periods, attempts, retake packages, and verifiable digital certificates with QR codes).  
+**Current Phase Completed**: Phase 5 (Professional validation path, assessment package checkout, lessons exclusion, assessment-only eligibility for Certificate of Skills Validation, and full course upgrade pricing difference).  
 **Last Updated**: October 2026
 
 ---
@@ -15,6 +15,14 @@
   - Spatie Laravel-Permission with strict permission checks.
   - Controller code never checks role names directly; all authorizations route through Policies and permission middleware (`permission:xyz`).
 - **Audit Logging**: Spatie Activitylog tracking model mutations on `User`, `Course`, `Order`, `RefundRequest`, `CreditNote`, `Assignment`, `AssignmentSubmission`, `Exam`, `ExamAttempt`, and `Certificate`.
+- **Professional Validation Path (Phase 5)**:
+  - `Course`: Added `is_open_for_validation`, `validation_price_kes`, `validation_price_usd`.
+  - Assessment Package Checkout: Students and professionals can purchase `item_type: 'assessment_package'` priced separately from course bundle.
+  - Enrollment Path Type: Recorded as `path_type = 'validation'` on `enrollments`.
+  - Curriculum Access Control: Professionals have direct access to module assignments and final examinations. Instructional lessons are excluded and hidden, and blocked by `LessonPolicy`.
+  - Certificate of Skills Validation: `CertificateService::isEligibleForCertificate` skips lesson completion requirements for `path_type === 'validation'`. When student passes all module assignments and the final exam, issues a "Certificate of Skills Validation" stating direct assessment completion.
+  - Public Verification: `GET /api/v1/certificates/verify/{code}` returns `path_type: 'validation'`, `certificate_type_title: 'Certificate of Skills Validation'`, and `assessment_note: 'The holder completed assessment examination only.'`.
+  - Upgrade to Full Course Bundle: Students on the validation track can upgrade anytime by paying `bundle_price - validation_price` via `PricingService::calculateUpgradePrice` and purchasing `item_type: 'bundle_upgrade'`. Upon fulfillment, enrollment transitions to `path_type = 'standard'` and all lessons and modules are unlocked.
 - **Exams & Server-Enforced Countdown (Phase 4b)**:
   - `ExamService`: Enforces timer server-side against `expires_at`, debounces intermediate auto-saves while student types, and triggers automatic submission if time expires.
   - Recorded Performance Pause: Freezes timer upon recital video/audio capture and grants a 15-minute grace period (`upload_grace_period_expires_at`) for uploading.
