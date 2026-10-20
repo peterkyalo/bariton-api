@@ -50,6 +50,7 @@ class CoursesSeeder extends Seeder
                 'title' => 'Classical Piano Mastery',
                 'description' => 'A comprehensive conservatory-level piano program designed by Bariton Music Academy master instructors. Structured into three progressive levels (Beginner, Intermediate, and Advanced) with video masterclasses, downloadable PDF scores, and guided audio listening.',
                 'short_description' => 'Master classical piano from fundamental keyboard geography and reading sheet music to performing virtuoso concert repertoire.',
+                'thumbnail_path' => 'https://images.unsplash.com/photo-1520523839898-507127b31130?auto=format&fit=crop&w=800&q=80',
                 'status' => 'published',
                 'bundle_discount_type' => 'percent',
                 'bundle_discount_value' => 15,
@@ -375,6 +376,119 @@ class CoursesSeeder extends Seeder
                 'order' => 4,
                 'explanation' => 'Evaluated against the Conservatory Assessment Rubric for tone, rhythm, and interpretative clarity.',
             ]);
+        }
+
+        // Additional Conservatory Courses for rich catalog
+        $extraCourses = [
+            [
+                'slug' => 'african-contemporary-gospel-keyboard',
+                'title' => 'African Contemporary Gospel Keyboard',
+                'short_description' => 'Master tritones, 7-3-6 passing chords, diminished substitutions, and contemporary African gospel praise progressions.',
+                'description' => 'A master-level exploration of contemporary gospel keyboard harmony and rhythm. Learn the voicings, dynamic pads, and fluid runs made famous across East, West, and Southern African praise and worship traditions.',
+                'thumbnail_path' => 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=800&q=80',
+                'level' => 'intermediate',
+                'bundle_discount_type' => 'percent',
+                'bundle_discount_value' => 10,
+                'modules' => [
+                    ['slug' => 'gospel-chords-and-tritones', 'title' => 'Intermediate: Passing Chords & Tritone Substitutions', 'level' => 'intermediate', 'price_kes' => 600000],
+                    ['slug' => 'praise-grooves-and-modulations', 'title' => 'Advanced: Contemporary African Praise Grooves & Transpositions', 'level' => 'advanced', 'price_kes' => 750000],
+                ],
+            ],
+            [
+                'slug' => 'conservatory-cello-performance',
+                'title' => 'Conservatory Cello Performance & Technique',
+                'short_description' => 'Comprehensive violoncello training: posture, tone resonance, shifting, thumb position, and Bach solo suites.',
+                'description' => 'From initial tone production to virtuoso orchestral literature. This course guides cellists through technical mastery of bow division, spiccato, vibrato control, and stylistic interpretation of the Baroque and Romantic eras.',
+                'thumbnail_path' => 'https://images.unsplash.com/photo-1465847899084-d164df4dedc6?auto=format&fit=crop&w=800&q=80',
+                'level' => 'beginner',
+                'bundle_discount_type' => 'percent',
+                'bundle_discount_value' => 15,
+                'modules' => [
+                    ['slug' => 'cello-tone-and-bow-control', 'title' => 'Beginner: Cello Setup, Bow Grip & Resonance', 'level' => 'beginner', 'price_kes' => 500000],
+                    ['slug' => 'cello-shifting-and-positions', 'title' => 'Intermediate: Shifting, Vibrato & Bach Suites', 'level' => 'intermediate', 'price_kes' => 700000],
+                ],
+            ],
+            [
+                'slug' => 'vocal-artistry-opera-performance',
+                'title' => 'Vocal Artistry & Bel Canto Technique',
+                'short_description' => 'Diaphragmatic breath support, vocal registers, appoggio, agility, and dramatic stage interpretation.',
+                'description' => 'Train your voice with classical Italian Bel Canto foundations. Learn to navigate the passaggio without tension, cultivate brilliant acoustic resonance, and interpret operatic arias and contemporary classical literature.',
+                'thumbnail_path' => 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&w=800&q=80',
+                'level' => 'beginner',
+                'bundle_discount_type' => 'percent',
+                'bundle_discount_value' => 12,
+                'modules' => [
+                    ['slug' => 'vocal-foundations-and-breath', 'title' => 'Beginner: Breath Support, Posture & Resonance Placement', 'level' => 'beginner', 'price_kes' => 450000],
+                    ['slug' => 'passaggio-and-bel-canto-arias', 'title' => 'Intermediate: Agility, Passaggio Transition & Aria Repertoire', 'level' => 'intermediate', 'price_kes' => 650000],
+                ],
+            ],
+            [
+                'slug' => 'jazz-improvisation-harmony',
+                'title' => 'Jazz Improvisation & Modern Harmony',
+                'short_description' => 'Bebop scales, modal interchange, altered dominants, chord melody, and spontaneous solo construction.',
+                'description' => 'Unlock musical fluency across the Great American Songbook and modern modal jazz. Develop deep ear-training, transcribe legendary solos, and construct compelling melodic arcs over fast-moving harmonic progressions.',
+                'thumbnail_path' => 'https://images.unsplash.com/photo-1511192336575-5a79af67a629?auto=format&fit=crop&w=800&q=80',
+                'level' => 'advanced',
+                'bundle_discount_type' => 'percent',
+                'bundle_discount_value' => 10,
+                'modules' => [
+                    ['slug' => 'jazz-scales-and-guide-tones', 'title' => 'Intermediate: 2-5-1 Progressions & Guide Tone Voice Leading', 'level' => 'intermediate', 'price_kes' => 650000],
+                    ['slug' => 'advanced-altered-scales-and-soloing', 'title' => 'Advanced: Altered Scales, Coltrane Changes & Chord Melody', 'level' => 'advanced', 'price_kes' => 850000],
+                ],
+            ],
+            [
+                'slug' => 'acoustic-guitar-african-fingerstyle',
+                'title' => 'Acoustic Guitar & East African Fingerstyle',
+                'short_description' => 'Acoustic fingerpicking techniques, alternate open tunings, percussive rhythm slap, and traditional Benga picking.',
+                'description' => 'Explore the versatile expressive world of the acoustic guitar. Combine European classical fingerpicking with distinct East African fingerstyle traditions, polyrhythmic grooves, and contemporary acoustic composition.',
+                'thumbnail_path' => 'https://images.unsplash.com/photo-1510915361894-db8b60106cb1?auto=format&fit=crop&w=800&q=80',
+                'level' => 'intermediate',
+                'bundle_discount_type' => 'percent',
+                'bundle_discount_value' => 15,
+                'modules' => [
+                    ['slug' => 'guitar-fingerpicking-foundations', 'title' => 'Beginner: Fingerpicking Posture, Thumb Independence & Arpeggios', 'level' => 'beginner', 'price_kes' => 400000],
+                    ['slug' => 'african-fingerstyle-and-percussive-guitar', 'title' => 'Intermediate: Benga Fingerstyle, Alternating Bass & Percussive Slap', 'level' => 'intermediate', 'price_kes' => 600000],
+                ],
+            ],
+        ];
+
+        foreach ($extraCourses as $cData) {
+            $modulesData = $cData['modules'];
+            unset($cData['modules']);
+            $level = $cData['level'];
+            unset($cData['level']);
+
+            $c = Course::updateOrCreate(
+                ['slug' => $cData['slug']],
+                array_merge($cData, [
+                    'status' => 'published',
+                    'requires_sequential_levels' => false,
+                    'is_open_for_validation' => false,
+                    'created_by' => $admin?->id,
+                ])
+            );
+
+            if ($instructor) {
+                $c->instructors()->syncWithoutDetaching([
+                    $instructor->id => ['is_primary' => true],
+                ]);
+            }
+
+            foreach ($modulesData as $order => $m) {
+                Module::updateOrCreate(
+                    [
+                        'course_id' => $c->id,
+                        'slug' => $m['slug'],
+                    ],
+                    [
+                        'title' => $m['title'],
+                        'description' => 'Conservatory curriculum module covering key repertoire and technical exercises.',
+                        'level' => $m['level'],
+                        'order' => $order + 1,
+                        'price_kes' => $m['price_kes'],
+                    ]
+                );
+            }
         }
     }
 }

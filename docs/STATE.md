@@ -68,6 +68,17 @@
 ### Phase 7: One-on-One Tutoring
 - Instructor weekly recurring availability shifts evaluated strictly in `Africa/Nairobi` (EAT) timezone.
 - 60-minute teaching blocks with 15-minute inter-session buffers.
+- Rescheduling policy enforcing minimum 24-hour notice window and instructor-initiated rescheduling.
+- Tutoring package discounts and multi-session checkout.
+
+### Phase 9: CMS Engine & Public Landing Page (HTML Template Integration)
+- Dynamic Content Management System supporting custom page sections, rich JSON blocks, and markdown/HTML body content.
+- `cms_pages` table with category classification (`landing`, `general`, `legal`, `custom`), SEO meta attributes (`meta_title`, `meta_description`), and publication flags.
+- `contact_inquiries` table capturing public inquiries with ticket status lifecycle (`pending`, `in_progress`, `resolved`, `archived`) and admin internal notes.
+- Public API endpoints: `GET /api/v1/pages`, `GET /api/v1/pages/{slug}`, and `POST /api/v1/contact`.
+- Admin CMS management API endpoints: `GET/POST /api/v1/admin/cms/pages`, `GET/PUT/DELETE /api/v1/admin/cms/pages/{id}`, and `GET/PUT /api/v1/admin/cms/contact-inquiries`.
+- Default seeder `CmsPageSeeder` provisioning rich conservatory content for `home`, `about`, `contact`, `terms`, and `privacy`.
+- Integrated public views matching all attached template designs: `index.html` (Landing), `about.html`, `courses.html`, `team.html`, `testimonial.html`, `contact.html`, and `404.html`.
 - Instructor blackout dates / time-off management.
 - Multi-session package definitions (1, 5, 10 sessions) with remaining credit ledgers and daily automated expiry sweep.
 - Concurrency locks on booked slots preventing double-booking.

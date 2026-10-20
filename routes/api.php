@@ -8,9 +8,12 @@ use App\Http\Controllers\Api\v1\Admin\RoleController;
 use App\Http\Controllers\Api\v1\Admin\SettingController;
 use App\Http\Controllers\Api\v1\Admin\UserController;
 use App\Http\Controllers\Api\v1\AdminCertificateController;
+use App\Http\Controllers\Api\v1\AdminCmsController;
 use App\Http\Controllers\Api\v1\AuthController;
 use App\Http\Controllers\Api\v1\CertificateVerificationController;
 use App\Http\Controllers\Api\v1\ChunkedUploadController;
+use App\Http\Controllers\Api\v1\CmsPageController;
+use App\Http\Controllers\Api\v1\ContactInquiryController;
 use App\Http\Controllers\Api\v1\CoordinatorEventController;
 use App\Http\Controllers\Api\v1\CourseCatalogController;
 use App\Http\Controllers\Api\v1\DashboardController;
@@ -90,6 +93,12 @@ Route::post('webhooks/paypal', [PaymentController::class, 'paypalWebhook']);
 // Public Certificate Verification (Rate Limited)
 Route::get('certificates/verify/{code}', [CertificateVerificationController::class, 'verify'])
     ->middleware('throttle:30,1');
+
+// Public CMS Pages & Contact Inquiries
+Route::get('pages', [CmsPageController::class, 'index']);
+Route::get('pages/{slug}', [CmsPageController::class, 'show']);
+Route::post('contact', [ContactInquiryController::class, 'store'])
+    ->middleware('throttle:10,1');
 
 // Authenticated Endpoints (Sanctum cookie or token)
 Route::middleware(['auth:sanctum', EnsureUserIsActive::class, EnsureTwoFactorEnabled::class])->group(function () {
@@ -285,6 +294,15 @@ Route::middleware(['auth:sanctum', EnsureUserIsActive::class, EnsureTwoFactorEna
         Route::get('notification-templates/{key}', [NotificationTemplateController::class, 'show']);
         Route::put('notification-templates/{key}', [NotificationTemplateController::class, 'update']);
         Route::post('notification-templates/{key}/test-send', [NotificationTemplateController::class, 'testSend']);
+
+        // CMS Pages & Inquiries Management
+        Route::get('cms/pages', [AdminCmsController::class, 'index']);
+        Route::post('cms/pages', [AdminCmsController::class, 'store']);
+        Route::get('cms/pages/{id}', [AdminCmsController::class, 'show']);
+        Route::put('cms/pages/{id}', [AdminCmsController::class, 'update']);
+        Route::delete('cms/pages/{id}', [AdminCmsController::class, 'destroy']);
+        Route::get('cms/contact-inquiries', [AdminCmsController::class, 'inquiries']);
+        Route::put('cms/contact-inquiries/{id}', [AdminCmsController::class, 'updateInquiry']);
     });
 
     // Multi-Role Dashboards & Reports (Phase 8)
