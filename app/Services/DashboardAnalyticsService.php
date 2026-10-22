@@ -244,10 +244,14 @@ class DashboardAnalyticsService
             ->take(10)
             ->get();
 
-        // 4. Course Roster Count
+        // 4. Course Roster Count with Modules Count
         $courses = Course::whereHas('instructors', function ($q) use ($instructor) {
             $q->where('users.id', $instructor->id);
-        })->withCount('enrollments')->get();
+        })->withCount(['enrollments', 'modules'])->latest()->get();
+
+        $newlyAssignedCourses = $courses->filter(function ($c) {
+            return $c->modules_count === 0 || ($c->created_at && $c->created_at->diffInDays(now()) <= 7);
+        })->values();
 
         return [
             'pending_assignments_count' => $pendingAssignments->count(),
@@ -257,6 +261,7 @@ class DashboardAnalyticsService
             'upcoming_sessions_count' => $upcomingSessions->count(),
             'upcoming_sessions' => $upcomingSessions,
             'courses' => $courses,
+            'newly_assigned_courses' => $newlyAssignedCourses,
         ];
     }
 

@@ -65,6 +65,25 @@ class CourseController extends Controller
 
         if (! empty($instructorIds)) {
             $course->instructors()->sync($instructorIds);
+
+            $frontendUrl = config('app.frontend_url', 'http://localhost:5173');
+            foreach ($course->instructors as $instructor) {
+                try {
+                    app(\App\Services\NotificationTemplateService::class)->send(
+                        'course_assigned',
+                        $instructor,
+                        [
+                            'instructor_name' => $instructor->name,
+                            'course_title' => $course->title,
+                            'course_id' => $course->id,
+                            'app_url' => $frontendUrl,
+                        ],
+                        $course
+                    );
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::warning("Course assigned notification failed: " . $e->getMessage());
+                }
+            }
         }
 
         $course->load(['instructors', 'modules']);
@@ -103,7 +122,32 @@ class CourseController extends Controller
         $course->update($data);
 
         if (is_array($instructorIds) && $request->user()->can('courses.manage-all')) {
+            $existingIds = $course->instructors()->pluck('users.id')->toArray();
+            $newlyAdded = array_diff($instructorIds, $existingIds);
+
             $course->instructors()->sync($instructorIds);
+
+            if (! empty($newlyAdded)) {
+                $frontendUrl = config('app.frontend_url', 'http://localhost:5173');
+                $newInstructors = \App\Models\User::whereIn('id', $newlyAdded)->get();
+                foreach ($newInstructors as $instructor) {
+                    try {
+                        app(\App\Services\NotificationTemplateService::class)->send(
+                            'course_assigned',
+                            $instructor,
+                            [
+                                'instructor_name' => $instructor->name,
+                                'course_title' => $course->title,
+                                'course_id' => $course->id,
+                                'app_url' => $frontendUrl,
+                            ],
+                            $course
+                        );
+                    } catch (\Throwable $e) {
+                        \Illuminate\Support\Facades\Log::warning("Course assigned notification failed: " . $e->getMessage());
+                    }
+                }
+            }
         }
 
         $course->load(['instructors', 'modules.lessons']);

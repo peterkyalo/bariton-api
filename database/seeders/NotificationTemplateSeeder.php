@@ -98,6 +98,17 @@ class NotificationTemplateSeeder extends Seeder
                 'variables' => ['student_name', 'instructor_name', 'session_datetime', 'session_mode', 'meeting_info'],
                 'is_active' => true,
             ],
+            [
+                'key' => 'course_assigned',
+                'name' => 'Faculty Course Assignment Notice',
+                'category' => 'academic',
+                'channel' => 'both',
+                'email_subject' => 'Faculty Assignment: {{ course_title }}',
+                'email_body' => "Dear {{ instructor_name }},\n\nYou have been assigned as an instructor to teach {{ course_title }}.\n\nYou can now access your Faculty Studio, manage course levels, and create course curriculum modules and lessons.\n\nOpen your studio here: {{ app_url }}/instructor/courses/{{ course_id }}\n\nBariton Music Academy Academic Directorate",
+                'sms_body' => 'Bariton Faculty: You were assigned to teach {{ course_title }}. Log in to your Faculty Studio to create modules.',
+                'variables' => ['instructor_name', 'course_title', 'course_id', 'app_url'],
+                'is_active' => true,
+            ],
         ];
 
         foreach ($templates as $data) {
