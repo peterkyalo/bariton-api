@@ -76,7 +76,7 @@ test('admin can view, edit, and test-send notification templates', function () {
     // 1. View templates
     $res = $this->actingAs($admin)->getJson('/api/v1/admin/notification-templates');
     $res->assertStatus(200)
-        ->assertJsonCount(8, 'data');
+        ->assertJsonCount(\App\Models\NotificationTemplate::count(), 'data');
 
     // 2. Edit template
     $updateRes = $this->actingAs($admin)->putJson('/api/v1/admin/notification-templates/registration', [

@@ -160,6 +160,13 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Certificate::class);
     }
 
+    public function taughtCourses(): BelongsToMany
+    {
+        return $this->belongsToMany(Course::class, 'course_user')
+            ->withPivot('is_primary')
+            ->withTimestamps();
+    }
+
     public function isMinor(): bool
     {
         if (! $this->date_of_birth) {

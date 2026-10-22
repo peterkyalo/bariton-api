@@ -46,6 +46,11 @@ class StudentTutoringController extends Controller
         $startDate = $request->query('start_date', now()->toDateString());
         $endDate = $request->query('end_date', now()->addDays(14)->toDateString());
 
+        if ($request->filled('date')) {
+            $startDate = $request->query('date');
+            $endDate = $request->query('date');
+        }
+
         $slots = $this->slotService->getAvailableSlots($instructor, $startDate, $endDate);
 
         return response()->json([
@@ -59,10 +64,34 @@ class StudentTutoringController extends Controller
     }
 
     /**
+     * Get list of active instructors available for private tutoring.
+     */
+    public function getInstructors(): JsonResponse
+    {
+        $instructors = User::role('instructor')
+            ->where('status', 'active')
+            ->select(['id', 'name', 'email'])
+            ->get();
+
+        return response()->json([
+            'data' => $instructors,
+        ]);
+    }
+
+    /**
      * Book a tutoring session from available credits.
      */
     public function book(Request $request): JsonResponse
     {
+        if (! $request->filled('student_package_uuid') && $request->filled('student_tutoring_package_id')) {
+            $sp = StudentTutoringPackage::where('id', $request->input('student_tutoring_package_id'))
+                ->where('user_id', $request->user()->id)
+                ->first();
+            if ($sp) {
+                $request->merge(['student_package_uuid' => $sp->uuid]);
+            }
+        }
+
         $validated = $request->validate([
             'student_package_uuid' => 'required|exists:student_tutoring_packages,uuid',
             'instructor_id' => 'required|exists:users,id',

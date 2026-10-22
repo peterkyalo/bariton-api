@@ -79,6 +79,7 @@ Route::get('events/{slug}', [EventController::class, 'show']);
 // Public Tutoring Packages & Open Slots (Phase 7)
 Route::get('tutoring/packages', [TutoringPackageController::class, 'index']);
 Route::get('tutoring/packages/{slug}', [TutoringPackageController::class, 'show']);
+Route::get('tutoring/instructors', [StudentTutoringController::class, 'getInstructors']);
 Route::get('tutoring/instructors/{instructorId}/slots', [StudentTutoringController::class, 'getAvailableSlots']);
 
 // Signed Media Streaming
