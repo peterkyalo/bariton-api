@@ -260,6 +260,7 @@ Route::middleware(['auth:sanctum', EnsureUserIsActive::class, EnsureTwoFactorEna
         // Tutoring Packages (Phase 7)
         Route::post('tutoring/packages', [TutoringPackageController::class, 'store'])->middleware('permission:tutoring.manage-packages');
         Route::put('tutoring/packages/{id}', [TutoringPackageController::class, 'update'])->middleware('permission:tutoring.manage-packages');
+        Route::delete('tutoring/packages/{id}', [TutoringPackageController::class, 'destroy'])->middleware('permission:tutoring.manage-packages');
 
         // Certificates Management (Phase 4b)
         Route::middleware('permission:courses.manage-all')->group(function () {

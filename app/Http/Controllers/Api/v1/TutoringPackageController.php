@@ -17,8 +17,11 @@ class TutoringPackageController extends Controller
      */
     public function index(Request $request): AnonymousResourceCollection
     {
-        $query = TutoringPackage::with(['course', 'instructor'])
-            ->where('is_active', true);
+        $query = TutoringPackage::with(['course', 'instructor']);
+
+        if (! ($request->user()?->can('tutoring.manage-packages') && $request->boolean('all'))) {
+            $query->where('is_active', true);
+        }
 
         if ($request->has('course_id')) {
             $query->where(function ($q) use ($request) {
@@ -110,6 +113,19 @@ class TutoringPackageController extends Controller
         return response()->json([
             'message' => 'Tutoring package updated successfully.',
             'package' => new TutoringPackageResource($package->fresh(['course', 'instructor'])),
+        ]);
+    }
+
+    /**
+     * Admin: Delete tutoring package.
+     */
+    public function destroy(int $id): JsonResponse
+    {
+        $package = TutoringPackage::findOrFail($id);
+        $package->delete();
+
+        return response()->json([
+            'message' => 'Tutoring package deleted successfully.',
         ]);
     }
 }
