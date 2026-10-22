@@ -78,6 +78,7 @@ class FinanceEventController extends Controller
      */
     public function approveRefund(Request $request, string $uuid): JsonResponse
     {
+        abort_unless($request->user()?->hasAnyRole(['admin', 'finance_manager']), 403, 'Only finance managers can review refunds.');
         $refundRequest = RefundRequest::where('uuid', $uuid)
             ->whereNotNull('event_booking_id')
             ->firstOrFail();
@@ -116,6 +117,7 @@ class FinanceEventController extends Controller
      */
     public function rejectRefund(Request $request, string $uuid): JsonResponse
     {
+        abort_unless($request->user()?->hasAnyRole(['admin', 'finance_manager']), 403, 'Only finance managers can review refunds.');
         $refundRequest = RefundRequest::where('uuid', $uuid)
             ->whereNotNull('event_booking_id')
             ->firstOrFail();
