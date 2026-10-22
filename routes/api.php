@@ -195,7 +195,7 @@ Route::middleware(['auth:sanctum', EnsureUserIsActive::class, EnsureTwoFactorEna
     Route::get('orders/{uuid}/status', [PaymentController::class, 'checkStatus']);
 
     // Finance Operations
-    Route::prefix('finance')->group(function () {
+    Route::prefix('finance')->middleware('permission:dashboard.finance')->group(function () {
         Route::get('orders', [FinancePaymentController::class, 'orders']);
         Route::post('cash-payment', [FinancePaymentController::class, 'recordCash']);
         Route::get('payments', [FinancePaymentController::class, 'payments']);
@@ -211,7 +211,7 @@ Route::middleware(['auth:sanctum', EnsureUserIsActive::class, EnsureTwoFactorEna
     });
 
     // Coordinator Event Management (Phase 6)
-    Route::prefix('coordinator')->group(function () {
+    Route::prefix('coordinator')->middleware('permission:events.manage')->group(function () {
         Route::get('events', [CoordinatorEventController::class, 'index']);
         Route::post('events', [CoordinatorEventController::class, 'store']);
         Route::get('events/{id}', [CoordinatorEventController::class, 'show']);
@@ -222,7 +222,7 @@ Route::middleware(['auth:sanctum', EnsureUserIsActive::class, EnsureTwoFactorEna
     });
 
     // Instructor Course Management
-    Route::prefix('instructor')->group(function () {
+    Route::prefix('instructor')->middleware('permission:courses.teach|tutoring.manage-availability')->group(function () {
         Route::get('courses', [InstructorCourseController::class, 'index']);
         Route::get('courses/{course}', [InstructorCourseController::class, 'show']);
         Route::post('courses/{course}/modules', [InstructorCourseController::class, 'createModule']);
@@ -258,13 +258,15 @@ Route::middleware(['auth:sanctum', EnsureUserIsActive::class, EnsureTwoFactorEna
     // Admin Endpoints
     Route::prefix('admin')->group(function () {
         // Tutoring Packages (Phase 7)
-        Route::post('tutoring/packages', [TutoringPackageController::class, 'store']);
-        Route::put('tutoring/packages/{id}', [TutoringPackageController::class, 'update']);
+        Route::post('tutoring/packages', [TutoringPackageController::class, 'store'])->middleware('permission:tutoring.manage-packages');
+        Route::put('tutoring/packages/{id}', [TutoringPackageController::class, 'update'])->middleware('permission:tutoring.manage-packages');
 
         // Certificates Management (Phase 4b)
-        Route::get('certificates', [AdminCertificateController::class, 'index']);
-        Route::post('certificates/{uuid}/revoke', [AdminCertificateController::class, 'revoke']);
-        Route::post('certificates/{uuid}/reissue', [AdminCertificateController::class, 'reissue']);
+        Route::middleware('permission:courses.manage-all')->group(function () {
+            Route::get('certificates', [AdminCertificateController::class, 'index']);
+            Route::post('certificates/{uuid}/revoke', [AdminCertificateController::class, 'revoke']);
+            Route::post('certificates/{uuid}/reissue', [AdminCertificateController::class, 'reissue']);
+        });
 
         // Courses
         Route::apiResource('courses', CourseController::class);
@@ -290,10 +292,12 @@ Route::middleware(['auth:sanctum', EnsureUserIsActive::class, EnsureTwoFactorEna
         Route::post('test-sms', [NotificationLogController::class, 'testSms']);
 
         // Notification Templates (Phase 8)
-        Route::get('notification-templates', [NotificationTemplateController::class, 'index']);
-        Route::get('notification-templates/{key}', [NotificationTemplateController::class, 'show']);
-        Route::put('notification-templates/{key}', [NotificationTemplateController::class, 'update']);
-        Route::post('notification-templates/{key}/test-send', [NotificationTemplateController::class, 'testSend']);
+        Route::middleware('permission:notifications.view')->group(function () {
+            Route::get('notification-templates', [NotificationTemplateController::class, 'index']);
+            Route::get('notification-templates/{key}', [NotificationTemplateController::class, 'show']);
+            Route::put('notification-templates/{key}', [NotificationTemplateController::class, 'update'])->middleware('permission:notifications.manage');
+            Route::post('notification-templates/{key}/test-send', [NotificationTemplateController::class, 'testSend'])->middleware('permission:notifications.manage');
+        });
 
         // CMS Pages & Inquiries Management
         Route::get('cms/pages', [AdminCmsController::class, 'index']);

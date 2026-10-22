@@ -23,7 +23,7 @@ class CourseController extends Controller
      */
     public function index(Request $request): AnonymousResourceCollection
     {
-        $this->authorize('viewAny', Course::class);
+        abort_unless($request->user()?->can('courses.manage-all'), 403, 'This action is unauthorized.');
 
         $query = Course::query()
             ->with(['instructors', 'modules.lessons']);
@@ -57,6 +57,11 @@ class CourseController extends Controller
         $data['created_by'] = $request->user()->id;
 
         $course = Course::create($data);
+
+        // Instructors creating their own course are automatically assigned to it.
+        if (! $request->user()->can('courses.manage-all')) {
+            $instructorIds = array_values(array_unique(array_merge($instructorIds, [$request->user()->id])));
+        }
 
         if (! empty($instructorIds)) {
             $course->instructors()->sync($instructorIds);
@@ -97,7 +102,7 @@ class CourseController extends Controller
 
         $course->update($data);
 
-        if (is_array($instructorIds)) {
+        if (is_array($instructorIds) && $request->user()->can('courses.manage-all')) {
             $course->instructors()->sync($instructorIds);
         }
 
