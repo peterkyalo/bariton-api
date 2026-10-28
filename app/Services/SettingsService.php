@@ -45,9 +45,14 @@ class SettingsService
 
     public function setMany(array $settings): void
     {
+        $existing = Setting::whereIn('key', array_keys($settings))->get()->keyBy('key');
+
         foreach ($settings as $key => $value) {
-            Setting::where('key', $key)->update(['value' => $value]);
+            if (isset($existing[$key])) {
+                $existing[$key]->update(['value' => $value]);
+            }
         }
+
         $this->clearCache();
     }
 
