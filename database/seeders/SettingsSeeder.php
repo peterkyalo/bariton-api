@@ -10,6 +10,26 @@ class SettingsSeeder extends Seeder
     public function run(): void
     {
         $settings = [
+            // Branding (theme colors applied site-wide by the frontend)
+            [
+                'key' => 'brand_primary_color',
+                'value' => '#c8913a',
+                'type' => 'string',
+                'group' => 'branding',
+                'label' => 'Primary Brand Color',
+                'description' => 'Main accent color (buttons, highlights, links). Hex format, e.g. #c8913a.',
+                'is_public' => true,
+            ],
+            [
+                'key' => 'brand_secondary_color',
+                'value' => '#2f6fe4',
+                'type' => 'string',
+                'group' => 'branding',
+                'label' => 'Secondary Brand Color',
+                'description' => 'Supporting color (navigation highlights, info accents). Hex format, e.g. #2f6fe4.',
+                'is_public' => true,
+            ],
+
             // Uploads
             [
                 'key' => 'max_video_upload_mb',
