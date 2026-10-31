@@ -74,10 +74,13 @@ class MediaStreamService
                 'Content-Type' => $mimeType,
                 'Accept-Ranges' => 'bytes',
                 'Content-Disposition' => $dispositionType.'; filename="'.$safeName.'"',
-                'Cache-Control' => 'private, no-cache, must-revalidate',
+                'Cache-Control' => 'private, no-store, no-cache, must-revalidate',
             ];
 
-            return response()->file($fullPath, $headers);
+            $response = response()->file($fullPath, $headers);
+            $response->headers->set('Cache-Control', 'private, no-store, no-cache, must-revalidate');
+
+            return $response;
         }
 
         if (! preg_match('/bytes=(\d+)-(\d+)?/', $range, $matches)) {
@@ -150,10 +153,13 @@ class MediaStreamService
                 'Content-Type' => $mimeType,
                 'Accept-Ranges' => 'bytes',
                 'Content-Disposition' => $dispositionType.'; filename="'.($lesson->file_name ?: basename($lesson->file_path)).'"',
-                'Cache-Control' => 'private, no-cache, must-revalidate',
+                'Cache-Control' => 'private, no-store, no-cache, must-revalidate',
             ];
 
-            return response()->file($fullPath, $headers);
+            $response = response()->file($fullPath, $headers);
+            $response->headers->set('Cache-Control', 'private, no-store, no-cache, must-revalidate');
+
+            return $response;
         }
 
         // Parse byte range (e.g., "bytes=0-1024" or "bytes=1024-")

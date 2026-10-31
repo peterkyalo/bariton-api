@@ -23,6 +23,15 @@ class SecurityHeadersMiddleware
             $response->headers->set('Content-Security-Policy', "frame-ancestors {$allowedAncestors}");
             $response->headers->set('Cross-Origin-Resource-Policy', 'cross-origin');
             $response->headers->remove('X-Frame-Options');
+
+            $origin = $request->headers->get('Origin');
+            if ($origin) {
+                $response->headers->set('Access-Control-Allow-Origin', $origin);
+                $response->headers->set('Access-Control-Allow-Credentials', 'true');
+                $response->headers->set('Vary', 'Origin');
+            } else {
+                $response->headers->set('Access-Control-Allow-Origin', '*');
+            }
         } else {
             $response->headers->set('X-Frame-Options', 'SAMEORIGIN');
         }
