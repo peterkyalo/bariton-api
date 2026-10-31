@@ -26,7 +26,7 @@ class CourseController extends Controller
         abort_unless($request->user()?->can('courses.manage-all'), 403, 'This action is unauthorized.');
 
         $query = Course::query()
-            ->with(['instructors', 'modules.lessons']);
+            ->with(['instructors', 'attachments', 'modules.attachments', 'modules.lessons']);
 
         if ($request->filled('status')) {
             $query->where('status', $request->input('status'));
@@ -101,7 +101,7 @@ class CourseController extends Controller
     {
         $this->authorize('view', $course);
 
-        $course->loadMissing(['instructors', 'modules.lessons']);
+        $course->loadMissing(['instructors', 'attachments', 'modules.attachments', 'modules.lessons']);
 
         return response()->json([
             'course' => new CourseResource($course),

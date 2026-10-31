@@ -17,6 +17,9 @@ class LessonResource extends JsonResource
             $streamUrl = $mediaService->generateSignedStreamUrl($this->resource, 60);
         }
 
+        // Rich text bodies are paid material: the public catalog only reveals them for free previews.
+        $hideContent = $request->attributes->get('hide_lesson_content', false) && ! $this->is_preview;
+
         return [
             'id' => $this->id,
             'uuid' => $this->uuid,
@@ -27,7 +30,7 @@ class LessonResource extends JsonResource
             'order' => $this->order,
             'type' => $this->type,
             'youtube_video_id' => $this->youtube_video_id,
-            'content' => $this->content,
+            'content' => $hideContent ? null : $this->content,
             'duration_seconds' => $this->duration_seconds,
             'is_preview' => (bool) $this->is_preview,
             'file_name' => $this->file_name,

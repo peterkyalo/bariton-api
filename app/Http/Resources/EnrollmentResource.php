@@ -34,6 +34,11 @@ class EnrollmentResource extends JsonResource
                 'title' => $this->course->title,
                 'slug' => $this->course->slug,
                 'short_description' => $this->course->short_description,
+                'description' => $this->course->description,
+                'thumbnail_url' => $this->course->thumbnail_url,
+                'attachments' => $this->course->relationLoaded('attachments')
+                    ? AttachmentResource::collection($this->course->attachments)->resolve($request)
+                    : [],
                 'requires_sequential_levels' => (bool) $this->course->requires_sequential_levels,
             ],
             'is_validation_path' => $this->path_type === 'validation',
@@ -78,6 +83,11 @@ class EnrollmentResource extends JsonResource
                     'uuid' => $module->uuid,
                     'title' => $module->title,
                     'slug' => $module->slug,
+                    'description' => $module->description,
+                    'image_url' => $module->image_url,
+                    'attachments' => ($isUnlocked && ! $isValidation && $module->relationLoaded('attachments'))
+                        ? AttachmentResource::collection($module->attachments)->resolve($request)
+                        : [],
                     'level' => $module->level,
                     'order' => $module->order,
                     'is_unlocked' => $isUnlocked,

@@ -27,7 +27,7 @@ class InstructorCourseController extends Controller
     public function index(Request $request): AnonymousResourceCollection
     {
         $courses = $request->user()->coursesTeaching()
-            ->with(['instructors', 'modules.lessons'])
+            ->with(['instructors', 'attachments', 'modules.attachments', 'modules.lessons'])
             ->latest()
             ->paginate($request->input('per_page', 10));
 
@@ -41,7 +41,7 @@ class InstructorCourseController extends Controller
     {
         $this->authorize('update', $course);
 
-        $course->loadMissing(['instructors', 'modules.lessons']);
+        $course->loadMissing(['instructors', 'attachments', 'modules.attachments', 'modules.lessons']);
 
         return response()->json([
             'course' => new CourseResource($course),

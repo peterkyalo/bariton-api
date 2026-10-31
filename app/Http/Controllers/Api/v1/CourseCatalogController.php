@@ -39,6 +39,8 @@ class CourseCatalogController extends Controller
 
         $courses = $query->latest()->paginate($request->input('per_page', 12));
 
+        $request->attributes->set('hide_lesson_content', true);
+
         return CourseResource::collection($courses);
     }
 
@@ -47,16 +49,23 @@ class CourseCatalogController extends Controller
      */
     public function show(Request $request, string $slug): JsonResponse
     {
+        // Public catalog only exposes promotional media (images, YouTube) - never PDFs/audio or lesson bodies.
+        $promoOnly = fn ($q) => $q->whereIn('kind', ['image', 'youtube'])->orderBy('order');
+
         $course = Course::query()
             ->where('slug', $slug)
             ->with([
                 'instructors',
+                'attachments' => $promoOnly,
                 'modules' => fn ($q) => $q->orderBy('order'),
+                'modules.attachments' => $promoOnly,
                 'modules.lessons' => fn ($q) => $q->orderBy('order'),
             ])
             ->firstOrFail();
 
         $this->authorize('view', $course);
+
+        $request->attributes->set('hide_lesson_content', true);
 
         return response()->json([
             'course' => new CourseResource($course),

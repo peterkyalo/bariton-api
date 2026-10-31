@@ -45,6 +45,8 @@ class StudentCourseController extends Controller
             ->where('uuid', $uuid)
             ->with([
                 'course.instructors',
+                'course.attachments',
+                'course.modules.attachments',
                 'course.modules.lessons',
                 'course.modules.assignments',
                 'enrollmentModules',
