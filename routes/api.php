@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\v1\CmsPageController;
 use App\Http\Controllers\Api\v1\ContactInquiryController;
 use App\Http\Controllers\Api\v1\CoordinatorEventController;
 use App\Http\Controllers\Api\v1\CourseCatalogController;
+use App\Http\Controllers\Api\v1\CourseMaterialController;
 use App\Http\Controllers\Api\v1\DashboardController;
 use App\Http\Controllers\Api\v1\EventController;
 use App\Http\Controllers\Api\v1\FinanceEventController;
@@ -233,6 +234,16 @@ Route::middleware(['auth:sanctum', EnsureUserIsActive::class, EnsureTwoFactorEna
         Route::post('modules/{module}/lessons', [InstructorCourseController::class, 'createLesson']);
         Route::put('lessons/{lesson}', [InstructorCourseController::class, 'updateLesson']);
         Route::delete('lessons/{lesson}', [InstructorCourseController::class, 'deleteLesson']);
+
+        // Course & module rich media: inline editor images, cover images, and attachments (YouTube, PDF, audio, image)
+        Route::post('uploads/images', [CourseMaterialController::class, 'uploadEditorImage'])->middleware('throttle:60,1');
+        Route::post('courses/{course}/cover', [CourseMaterialController::class, 'setCourseCover']);
+        Route::delete('courses/{course}/cover', [CourseMaterialController::class, 'removeCourseCover']);
+        Route::post('modules/{module}/cover', [CourseMaterialController::class, 'setModuleCover']);
+        Route::delete('modules/{module}/cover', [CourseMaterialController::class, 'removeModuleCover']);
+        Route::post('courses/{course}/attachments', [CourseMaterialController::class, 'storeCourseAttachment']);
+        Route::post('modules/{module}/attachments', [CourseMaterialController::class, 'storeModuleAttachment']);
+        Route::delete('attachments/{attachment}', [CourseMaterialController::class, 'destroyAttachment']);
 
         // Assessment Grading & Rubrics
         Route::get('grading', [InstructorGradingController::class, 'queue']);
