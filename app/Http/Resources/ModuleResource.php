@@ -20,6 +20,8 @@ class ModuleResource extends JsonResource
             'title' => $this->title,
             'slug' => $this->slug,
             'description' => $this->description,
+            'image_url' => $this->image_url,
+            'attachments' => AttachmentResource::collection($this->whenLoaded('attachments')),
             'level' => $this->level,
             'order' => $this->order,
             'price_kes' => $this->price_kes,

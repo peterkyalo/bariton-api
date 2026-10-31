@@ -4,10 +4,13 @@ namespace App\Http\Requests;
 
 use App\Models\Lesson;
 use App\Services\SettingsService;
+use App\Http\Requests\Concerns\SanitizesRichText;
 use Illuminate\Foundation\Http\FormRequest;
 
 class CreateLessonRequest extends FormRequest
 {
+    use SanitizesRichText;
+
     public function authorize(): bool
     {
         return $this->user()?->can('courses.update') ?? false;
@@ -15,6 +18,7 @@ class CreateLessonRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        $this->sanitizeRichTextFields(['content']);
         if ($this->filled('youtube_video_id')) {
             $this->merge([
                 'youtube_video_id' => Lesson::extractYouTubeId($this->input('youtube_video_id')),

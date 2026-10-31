@@ -6,7 +6,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class Module extends Model
@@ -20,6 +22,8 @@ class Module extends Model
         'title',
         'slug',
         'description',
+        'image_path',
+        'image_disk',
         'level',
         'order',
         'price_kes',
@@ -63,5 +67,22 @@ class Module extends Model
     public function assignments(): HasMany
     {
         return $this->hasMany(Assignment::class)->orderBy('order');
+    }
+
+    public function attachments(): MorphMany
+    {
+        return $this->morphMany(Attachment::class, 'attachable')->orderBy('order');
+    }
+
+    /**
+     * Public URL of the module image, when one has been uploaded to the public disk.
+     */
+    public function getImageUrlAttribute(): ?string
+    {
+        if (! $this->image_path || $this->image_disk !== 'public') {
+            return null;
+        }
+
+        return Storage::disk('public')->url($this->image_path);
     }
 }

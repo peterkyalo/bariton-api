@@ -84,6 +84,7 @@ Route::get('tutoring/instructors/{instructorId}/slots', [StudentTutoringControll
 
 // Signed Media Streaming
 Route::get('media/lessons/{uuid}', [MediaStreamController::class, 'stream'])->name('media.lessons.stream');
+Route::get('media/attachments/{uuid}', [MediaStreamController::class, 'streamAttachment'])->name('media.attachments.stream');
 Route::get('media/submissions/{uuid}', [MediaStreamController::class, 'streamSubmission'])->name('media.submissions.stream');
 
 // Payment Webhooks

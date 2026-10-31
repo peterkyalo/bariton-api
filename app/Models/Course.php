@@ -9,7 +9,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -84,6 +86,23 @@ class Course extends Model
     public function modules(): HasMany
     {
         return $this->hasMany(Module::class)->orderBy('order');
+    }
+
+    public function attachments(): MorphMany
+    {
+        return $this->morphMany(Attachment::class, 'attachable')->orderBy('order');
+    }
+
+    /**
+     * Public URL of the cover image, when one has been uploaded to the public disk.
+     */
+    public function getThumbnailUrlAttribute(): ?string
+    {
+        if (! $this->thumbnail_path || $this->thumbnail_disk !== 'public') {
+            return null;
+        }
+
+        return Storage::disk('public')->url($this->thumbnail_path);
     }
 
     public function lessons(): HasManyThrough

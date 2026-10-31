@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Attachment;
 use App\Models\Lesson;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -21,6 +22,18 @@ class MediaStreamService
             'media.lessons.stream',
             now()->addMinutes($expiresMinutes),
             ['uuid' => $lesson->uuid]
+        );
+    }
+
+    /**
+     * Generate a temporary signed route URL to stream private course/module attachments (PDF, audio).
+     */
+    public function generateSignedAttachmentUrl(Attachment $attachment, int $expiresMinutes = 60): string
+    {
+        return URL::temporarySignedRoute(
+            'media.attachments.stream',
+            now()->addMinutes($expiresMinutes),
+            ['uuid' => $attachment->uuid]
         );
     }
 

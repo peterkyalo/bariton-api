@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\v1;
 
 use App\Http\Controllers\Controller;
+use App\Models\Attachment;
 use App\Models\AssignmentSubmission;
 use App\Models\Lesson;
 use App\Services\MediaStreamService;
@@ -28,6 +29,25 @@ class MediaStreamController extends Controller
         $lesson = Lesson::where('uuid', $uuid)->firstOrFail();
 
         return $this->mediaStreamService->streamLessonFile($lesson, $request);
+    }
+
+    /**
+     * Secure media streaming endpoint for course/module attachments (PDF, audio).
+     */
+    public function streamAttachment(Request $request, string $uuid): Response
+    {
+        if (! $request->hasValidSignature()) {
+            abort(401, 'Invalid or expired media signature.');
+        }
+
+        $attachment = Attachment::where('uuid', $uuid)->firstOrFail();
+
+        return $this->mediaStreamService->streamPath(
+            (string) $attachment->file_path,
+            $attachment->file_name,
+            $request,
+            $attachment->file_disk ?: config('filesystems.private_disk', 'local')
+        );
     }
 
     /**

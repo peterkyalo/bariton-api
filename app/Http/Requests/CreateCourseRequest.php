@@ -2,13 +2,21 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\SanitizesRichText;
 use Illuminate\Foundation\Http\FormRequest;
 
 class CreateCourseRequest extends FormRequest
 {
+    use SanitizesRichText;
+
     public function authorize(): bool
     {
         return $this->user()?->can('courses.create') ?? false;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $this->sanitizeRichTextFields(['description']);
     }
 
     public function rules(): array

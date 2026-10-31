@@ -4,14 +4,22 @@ namespace App\Http\Requests;
 
 use App\Models\Course;
 use App\Services\PricingService;
+use App\Http\Requests\Concerns\SanitizesRichText;
 use Illuminate\Foundation\Http\FormRequest;
 use InvalidArgumentException;
 
 class CreateModuleRequest extends FormRequest
 {
+    use SanitizesRichText;
+
     public function authorize(): bool
     {
         return $this->user()?->can('courses.update') ?? false;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $this->sanitizeRichTextFields(['description']);
     }
 
     public function rules(): array

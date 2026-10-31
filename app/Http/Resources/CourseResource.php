@@ -33,6 +33,8 @@ class CourseResource extends JsonResource
             'description' => $this->description,
             'short_description' => $this->short_description,
             'thumbnail_path' => $this->thumbnail_path,
+            'thumbnail_url' => $this->thumbnail_url,
+            'attachments' => AttachmentResource::collection($this->whenLoaded('attachments')),
             'status' => $this->status,
             'requires_sequential_levels' => (bool) $this->requires_sequential_levels,
             'is_open_for_validation' => (bool) $this->is_open_for_validation,
