@@ -94,11 +94,19 @@ class Course extends Model
     }
 
     /**
-     * Public URL of the cover image, when one has been uploaded to the public disk.
+     * Public URL of the cover image, when one has been uploaded to the public disk or set to an external URL.
      */
     public function getThumbnailUrlAttribute(): ?string
     {
-        if (! $this->thumbnail_path || $this->thumbnail_disk !== 'public') {
+        if (! $this->thumbnail_path) {
+            return null;
+        }
+
+        if (str_starts_with($this->thumbnail_path, 'http://') || str_starts_with($this->thumbnail_path, 'https://')) {
+            return $this->thumbnail_path;
+        }
+
+        if ($this->thumbnail_disk !== 'public') {
             return null;
         }
 

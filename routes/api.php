@@ -228,6 +228,7 @@ Route::middleware(['auth:sanctum', EnsureUserIsActive::class, EnsureTwoFactorEna
     Route::prefix('instructor')->middleware('permission:courses.teach|tutoring.manage-availability')->group(function () {
         Route::get('courses', [InstructorCourseController::class, 'index']);
         Route::get('courses/{course}', [InstructorCourseController::class, 'show']);
+        Route::put('courses/{course}', [InstructorCourseController::class, 'update']);
         Route::post('courses/{course}/modules', [InstructorCourseController::class, 'createModule']);
         Route::put('modules/{module}', [InstructorCourseController::class, 'updateModule']);
         Route::delete('modules/{module}', [InstructorCourseController::class, 'deleteModule']);

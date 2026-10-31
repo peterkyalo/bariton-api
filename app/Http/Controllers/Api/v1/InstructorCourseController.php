@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\v1;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CreateLessonRequest;
 use App\Http\Requests\CreateModuleRequest;
+use App\Http\Requests\UpdateCourseRequest;
 use App\Http\Requests\UpdateLessonRequest;
 use App\Http\Requests\UpdateModuleRequest;
 use App\Http\Resources\CourseResource;
@@ -45,6 +46,24 @@ class InstructorCourseController extends Controller
 
         return response()->json([
             'course' => new CourseResource($course),
+        ]);
+    }
+
+    /**
+     * Update instructor's assigned course details (overview, status, title).
+     */
+    public function update(UpdateCourseRequest $request, Course $course): JsonResponse
+    {
+        $this->authorize('update', $course);
+
+        $data = $request->validated();
+        unset($data['instructor_ids']);
+
+        $course->update($data);
+
+        return response()->json([
+            'message' => 'Course updated successfully.',
+            'course' => new CourseResource($course->load(['instructors', 'attachments', 'modules.attachments', 'modules.lessons'])),
         ]);
     }
 
