@@ -86,6 +86,10 @@ class Lesson extends Model
             return $input;
         }
 
+        if (preg_match('/^([a-zA-Z0-9_-]{11})(?:[?&\/#].*)$/', $input, $matches)) {
+            return $matches[1];
+        }
+
         if (preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i', $input, $matches)) {
             return $matches[1];
         }

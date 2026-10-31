@@ -75,11 +75,19 @@ class Module extends Model
     }
 
     /**
-     * Public URL of the module image, when one has been uploaded to the public disk.
+     * Public URL of the module image, when one has been uploaded to the public disk or set to an external URL.
      */
     public function getImageUrlAttribute(): ?string
     {
-        if (! $this->image_path || $this->image_disk !== 'public') {
+        if (! $this->image_path) {
+            return null;
+        }
+
+        if (str_starts_with($this->image_path, 'http://') || str_starts_with($this->image_path, 'https://')) {
+            return $this->image_path;
+        }
+
+        if ($this->image_disk !== 'public') {
             return null;
         }
 
