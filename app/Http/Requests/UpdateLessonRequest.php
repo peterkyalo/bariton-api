@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Lesson;
 use App\Services\SettingsService;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -10,6 +11,15 @@ class UpdateLessonRequest extends FormRequest
     public function authorize(): bool
     {
         return $this->user()?->can('courses.update') ?? false;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        if ($this->filled('youtube_video_id')) {
+            $this->merge([
+                'youtube_video_id' => Lesson::extractYouTubeId($this->input('youtube_video_id')),
+            ]);
+        }
     }
 
     public function rules(): array
@@ -25,8 +35,9 @@ class UpdateLessonRequest extends FormRequest
             'slug' => ['nullable', 'string', 'max:255'],
             'summary' => ['nullable', 'string'],
             'order' => ['nullable', 'integer', 'min:1'],
-            'type' => ['sometimes', 'required', 'in:youtube,audio,pdf'],
-            'youtube_video_id' => ['nullable', 'string', 'max:50'],
+            'type' => ['sometimes', 'required', 'in:youtube,audio,pdf,richtext,text'],
+            'youtube_video_id' => ['nullable', 'string', 'max:100'],
+            'content' => ['nullable', 'string'],
             'file' => [
                 'nullable',
                 'file',

@@ -114,6 +114,10 @@ class InstructorCourseController extends Controller
         $lessonUuid = (string) Str::uuid();
         $data['uuid'] = $lessonUuid;
 
+        if (!empty($data['youtube_video_id'])) {
+            $data['youtube_video_id'] = Lesson::extractYouTubeId($data['youtube_video_id']);
+        }
+
         if ($request->hasFile('file') && in_array($request->input('type'), ['audio', 'pdf'])) {
             $uploadedFile = $request->file('file');
             $disk = config('filesystems.private_disk', 'local');
@@ -146,6 +150,10 @@ class InstructorCourseController extends Controller
 
         $data = $request->validated();
         unset($data['file']);
+
+        if (!empty($data['youtube_video_id'])) {
+            $data['youtube_video_id'] = Lesson::extractYouTubeId($data['youtube_video_id']);
+        }
 
         if ($request->hasFile('file') && in_array($request->input('type', $lesson->type), ['audio', 'pdf'])) {
             $uploadedFile = $request->file('file');

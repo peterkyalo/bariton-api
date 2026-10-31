@@ -27,6 +27,7 @@ class LessonResource extends JsonResource
             'order' => $this->order,
             'type' => $this->type,
             'youtube_video_id' => $this->youtube_video_id,
+            'content' => $this->content,
             'duration_seconds' => $this->duration_seconds,
             'is_preview' => (bool) $this->is_preview,
             'file_name' => $this->file_name,

@@ -24,6 +24,7 @@ class Lesson extends Model
         'order',
         'type',
         'youtube_video_id',
+        'content',
         'file_path',
         'file_disk',
         'file_name',
@@ -68,5 +69,27 @@ class Lesson extends Model
     public function scopePreview(Builder $query): Builder
     {
         return $query->where('is_preview', true);
+    }
+
+    /**
+     * Extract an 11-character YouTube video ID from a raw ID or standard YouTube URL.
+     */
+    public static function extractYouTubeId(?string $input): ?string
+    {
+        if (empty($input)) {
+            return null;
+        }
+
+        $input = trim($input);
+
+        if (preg_match('/^[a-zA-Z0-9_-]{11}$/', $input)) {
+            return $input;
+        }
+
+        if (preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i', $input, $matches)) {
+            return $matches[1];
+        }
+
+        return $input;
     }
 }

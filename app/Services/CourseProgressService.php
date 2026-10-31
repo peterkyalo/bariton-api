@@ -11,7 +11,7 @@ class CourseProgressService
     /**
      * Record lesson progress and auto-complete when reaching completion criteria.
      * YouTube/Audio: >= 90% watched/played.
-     * PDF: explicit completion trigger or 100%.
+     * PDF/Richtext: explicit completion trigger or 100%.
      */
     public function recordProgress(
         Enrollment $enrollment,
@@ -31,7 +31,7 @@ class CourseProgressService
 
         $shouldComplete = $markComplete
             || $progress->progress_percent >= 90
-            || ($lesson->type === 'pdf' && $markComplete);
+            || (in_array($lesson->type, ['pdf', 'richtext', 'text']) && $markComplete);
 
         if ($shouldComplete && $progress->status !== 'completed') {
             $progress->status = 'completed';
