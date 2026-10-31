@@ -21,6 +21,7 @@ class SecurityHeadersMiddleware
                 'https://app.bmas.com',
             ])));
             $response->headers->set('Content-Security-Policy', "frame-ancestors {$allowedAncestors}");
+            $response->headers->set('Cross-Origin-Resource-Policy', 'cross-origin');
             $response->headers->remove('X-Frame-Options');
         } else {
             $response->headers->set('X-Frame-Options', 'SAMEORIGIN');

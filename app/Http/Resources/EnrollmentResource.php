@@ -9,6 +9,7 @@ class EnrollmentResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+        $mediaService = app(\App\Services\MediaStreamService::class);
         $unlockedModuleIds = $this->enrollmentModules->pluck('module_id')->toArray();
 
         $progressMap = [];
@@ -44,13 +45,16 @@ class EnrollmentResource extends JsonResource
             ],
             'is_validation_path' => $this->path_type === 'validation',
             'unlocked_module_ids' => $unlockedModuleIds,
-            'modules' => $this->course->modules->map(function ($module) use ($unlockedModuleIds, $progressMap, $request) {
+            'modules' => $this->course->modules->map(function ($module) use ($unlockedModuleIds, $progressMap, $request, $mediaService) {
                 $isValidation = $this->path_type === 'validation';
                 $isUnlocked = $isValidation || in_array($module->id, $unlockedModuleIds);
 
-                $lessons = $isValidation ? collect([]) : $module->lessons->map(function ($lesson) use ($progressMap, $isUnlocked) {
+                $lessons = $isValidation ? collect([]) : $module->lessons->map(function ($lesson) use ($progressMap, $isUnlocked, $mediaService) {
                     $prog = $progressMap[$lesson->id] ?? null;
                     $canAccess = $isUnlocked || (bool) $lesson->is_preview;
+                    $streamUrl = ($canAccess && in_array($lesson->type, ['audio', 'pdf']) && $lesson->file_path)
+                        ? $mediaService->generateSignedStreamUrl($lesson, 60)
+                        : null;
 
                     return [
                         'id' => $lesson->id,
@@ -65,6 +69,7 @@ class EnrollmentResource extends JsonResource
                         'content' => $canAccess ? $lesson->content : null,
                         'file_name' => $canAccess ? $lesson->file_name : null,
                         'file_size_bytes' => $canAccess ? $lesson->file_size_bytes : null,
+                        'stream_url' => $streamUrl,
                         'duration_seconds' => $lesson->duration_seconds,
                         'is_preview' => (bool) $lesson->is_preview,
                         'is_accessible' => $canAccess,

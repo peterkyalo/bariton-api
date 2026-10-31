@@ -22,7 +22,7 @@ class MediaStreamController extends Controller
      */
     public function stream(Request $request, string $uuid): Response
     {
-        if (! $request->hasValidSignature()) {
+        if (! $request->hasValidSignatureWhileIgnoring(['download'])) {
             abort(401, 'Invalid or expired media signature.');
         }
 
@@ -36,7 +36,7 @@ class MediaStreamController extends Controller
      */
     public function streamAttachment(Request $request, string $uuid): Response
     {
-        if (! $request->hasValidSignature()) {
+        if (! $request->hasValidSignatureWhileIgnoring(['download'])) {
             abort(401, 'Invalid or expired media signature.');
         }
 

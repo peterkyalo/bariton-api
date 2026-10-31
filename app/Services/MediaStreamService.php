@@ -66,13 +66,14 @@ class MediaStreamService
             $mimeType = 'application/pdf';
         }
 
+        $dispositionType = $request->boolean('download') ? 'attachment' : 'inline';
         $range = $request->header('Range');
 
         if (! $range) {
             $headers = [
                 'Content-Type' => $mimeType,
                 'Accept-Ranges' => 'bytes',
-                'Content-Disposition' => 'inline; filename="'.$safeName.'"',
+                'Content-Disposition' => $dispositionType.'; filename="'.$safeName.'"',
                 'Cache-Control' => 'private, no-cache, must-revalidate',
             ];
 
@@ -140,6 +141,7 @@ class MediaStreamService
             $mimeType = 'application/pdf';
         }
 
+        $dispositionType = $request->boolean('download') ? 'attachment' : 'inline';
         $range = $request->header('Range');
 
         if (! $range) {
@@ -147,7 +149,7 @@ class MediaStreamService
             $headers = [
                 'Content-Type' => $mimeType,
                 'Accept-Ranges' => 'bytes',
-                'Content-Disposition' => 'inline; filename="'.($lesson->file_name ?: basename($lesson->file_path)).'"',
+                'Content-Disposition' => $dispositionType.'; filename="'.($lesson->file_name ?: basename($lesson->file_path)).'"',
                 'Cache-Control' => 'private, no-cache, must-revalidate',
             ];
 
