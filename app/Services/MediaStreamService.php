@@ -60,8 +60,11 @@ class MediaStreamService
 
         $fullPath = Storage::disk($disk)->path($filePath);
         $fileSize = filesize($fullPath);
-        $mimeType = Storage::disk($disk)->mimeType($filePath) ?: 'application/octet-stream';
         $safeName = $filename ?: basename($filePath);
+        $mimeType = Storage::disk($disk)->mimeType($filePath) ?: 'application/octet-stream';
+        if (str_ends_with(strtolower($safeName), '.pdf') || str_ends_with(strtolower($filePath), '.pdf')) {
+            $mimeType = 'application/pdf';
+        }
 
         $range = $request->header('Range');
 
@@ -138,6 +141,9 @@ class MediaStreamService
         $fullPath = Storage::disk($disk)->path($lesson->file_path);
         $fileSize = filesize($fullPath);
         $mimeType = $lesson->mime_type ?: Storage::disk($disk)->mimeType($lesson->file_path) ?: 'application/octet-stream';
+        if ($lesson->type === 'pdf' || str_ends_with(strtolower((string) $lesson->file_name), '.pdf') || str_ends_with(strtolower((string) $lesson->file_path), '.pdf')) {
+            $mimeType = 'application/pdf';
+        }
 
         $range = $request->header('Range');
 

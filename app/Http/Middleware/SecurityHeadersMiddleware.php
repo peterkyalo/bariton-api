@@ -12,7 +12,19 @@ class SecurityHeadersMiddleware
     {
         $response = $next($request);
 
-        $response->headers->set('X-Frame-Options', 'SAMEORIGIN');
+        if ($request->is('api/v1/media/*')) {
+            $allowedAncestors = implode(' ', array_unique(array_filter([
+                "'self'",
+                env('FRONTEND_URL', 'http://localhost:5173'),
+                'http://localhost:5173',
+                'http://127.0.0.1:5173',
+                'https://app.bmas.com',
+            ])));
+            $response->headers->set('Content-Security-Policy', "frame-ancestors {$allowedAncestors}");
+            $response->headers->remove('X-Frame-Options');
+        } else {
+            $response->headers->set('X-Frame-Options', 'SAMEORIGIN');
+        }
         $response->headers->set('X-Content-Type-Options', 'nosniff');
         $response->headers->set('X-XSS-Protection', '1; mode=block');
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
