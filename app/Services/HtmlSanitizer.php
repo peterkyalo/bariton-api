@@ -148,3 +148,4 @@ class HtmlSanitizer
         return true;
     }
 }
+
