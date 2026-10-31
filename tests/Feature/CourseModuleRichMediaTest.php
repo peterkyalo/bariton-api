@@ -230,3 +230,23 @@ test('public catalog only exposes promo media and hides paid lesson content', fu
         ->assertJsonPath('course.modules.0.lessons.0.content', null)
         ->assertJsonPath('course.modules.0.lessons.1.content', '<p>free body</p>');
 });
+
+test('uploaded PDF course materials stream inline with frame-ancestors header for in-platform reading', function () {
+    $pdfRes = $this->actingAs($this->instructor)
+        ->postJson("/api/v1/instructor/courses/{$this->course->id}/attachments", [
+            'kind' => 'pdf',
+            'title' => 'Scrollable Sheet Music PDF',
+            'file' => UploadedFile::fake()->create('sheet-music.pdf', 300, 'application/pdf'),
+        ])
+        ->assertCreated();
+
+    $streamUrl = $pdfRes->json('data.url');
+    $path = parse_url($streamUrl, PHP_URL_PATH).'?'.parse_url($streamUrl, PHP_URL_QUERY);
+
+    $response = $this->get($path);
+    $response->assertOk();
+    expect($response->headers->get('Content-Type'))->toContain('application/pdf');
+    expect($response->headers->get('Content-Disposition'))->toContain('inline');
+    expect($response->headers->get('Content-Security-Policy'))->toContain('frame-ancestors');
+    expect($response->headers->has('X-Frame-Options'))->toBeFalse();
+});
