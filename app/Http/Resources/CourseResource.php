@@ -20,7 +20,7 @@ class CourseResource extends JsonResource
         $bundlePrice = $pricingService->formatPrice($bundlePriceKes);
         $savingsPrice = $pricingService->formatPrice($bundleSavingsKes);
 
-        $currentUser = $request->user();
+        $currentUser = $request->user('sanctum') ?? $request->user();
         $upgradeData = $pricingService->calculateUpgradePrice($this->resource, $currentUser);
 
         $validationPrice = $pricingService->formatPrice((int) ($this->validation_price_kes ?: 0));
@@ -72,6 +72,10 @@ class CourseResource extends JsonResource
                 'bundle_savings_usd_formatted' => $savingsPrice['usd_formatted'],
             ],
             'upgrade_pricing' => [
+                'is_enrolled' => $upgradeData['is_enrolled'] ?? false,
+                'enrollment_uuid' => $upgradeData['enrollment_uuid'] ?? null,
+                'enrollment_status' => $upgradeData['enrollment_status'] ?? null,
+                'progress_percent' => $upgradeData['progress_percent'] ?? 0.0,
                 'has_owned_modules' => $upgradeData['has_owned_modules'],
                 'is_validation_path' => $upgradeData['is_validation_path'] ?? false,
                 'owned_module_ids' => $upgradeData['owned_module_ids'],

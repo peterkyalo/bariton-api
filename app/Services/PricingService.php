@@ -125,7 +125,12 @@ class PricingService
 
         if (! $user) {
             return [
+                'is_enrolled' => false,
+                'enrollment_uuid' => null,
+                'enrollment_status' => null,
+                'progress_percent' => 0.0,
                 'has_owned_modules' => false,
+                'is_validation_path' => false,
                 'owned_module_ids' => [],
                 'total_paid_kes' => 0,
                 'upgrade_price' => $this->formatPrice($bundlePriceKes),
@@ -139,6 +144,10 @@ class PricingService
 
         if (! $enrollment) {
             return [
+                'is_enrolled' => false,
+                'enrollment_uuid' => null,
+                'enrollment_status' => null,
+                'progress_percent' => 0.0,
                 'has_owned_modules' => false,
                 'is_validation_path' => false,
                 'owned_module_ids' => [],
@@ -152,6 +161,10 @@ class PricingService
             $upgradePriceKes = max(0, $bundlePriceKes - $validationPrice);
 
             return [
+                'is_enrolled' => true,
+                'enrollment_uuid' => $enrollment->uuid,
+                'enrollment_status' => $enrollment->status,
+                'progress_percent' => (float) $enrollment->progress_percent,
                 'has_owned_modules' => false,
                 'is_validation_path' => true,
                 'owned_module_ids' => [],
@@ -162,6 +175,10 @@ class PricingService
 
         if ($enrollment->enrollmentModules->isEmpty()) {
             return [
+                'is_enrolled' => true,
+                'enrollment_uuid' => $enrollment->uuid,
+                'enrollment_status' => $enrollment->status,
+                'progress_percent' => (float) $enrollment->progress_percent,
                 'has_owned_modules' => false,
                 'is_validation_path' => false,
                 'owned_module_ids' => [],
@@ -175,6 +192,10 @@ class PricingService
         $upgradePriceKes = max(0, $bundlePriceKes - $totalPaidKes);
 
         return [
+            'is_enrolled' => true,
+            'enrollment_uuid' => $enrollment->uuid,
+            'enrollment_status' => $enrollment->status,
+            'progress_percent' => (float) $enrollment->progress_percent,
             'has_owned_modules' => true,
             'is_validation_path' => false,
             'owned_module_ids' => $ownedModuleIds,

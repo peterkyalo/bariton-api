@@ -35,6 +35,7 @@ class EnrollmentResource extends JsonResource
                 'slug' => $this->course->slug,
                 'short_description' => $this->course->short_description,
                 'description' => $this->course->description,
+                'thumbnail_path' => $this->course->thumbnail_path,
                 'thumbnail_url' => $this->course->thumbnail_url,
                 'attachments' => $this->course->relationLoaded('attachments')
                     ? AttachmentResource::collection($this->course->attachments)->resolve($request)
@@ -43,24 +44,30 @@ class EnrollmentResource extends JsonResource
             ],
             'is_validation_path' => $this->path_type === 'validation',
             'unlocked_module_ids' => $unlockedModuleIds,
-            'modules' => $this->course->modules->map(function ($module) use ($unlockedModuleIds, $progressMap) {
+            'modules' => $this->course->modules->map(function ($module) use ($unlockedModuleIds, $progressMap, $request) {
                 $isValidation = $this->path_type === 'validation';
                 $isUnlocked = $isValidation || in_array($module->id, $unlockedModuleIds);
 
                 $lessons = $isValidation ? collect([]) : $module->lessons->map(function ($lesson) use ($progressMap, $isUnlocked) {
                     $prog = $progressMap[$lesson->id] ?? null;
+                    $canAccess = $isUnlocked || (bool) $lesson->is_preview;
 
                     return [
                         'id' => $lesson->id,
                         'uuid' => $lesson->uuid,
+                        'module_id' => $lesson->module_id,
                         'title' => $lesson->title,
                         'slug' => $lesson->slug,
                         'summary' => $lesson->summary,
                         'order' => $lesson->order,
                         'type' => $lesson->type,
+                        'youtube_video_id' => $canAccess ? $lesson->youtube_video_id : null,
+                        'content' => $canAccess ? $lesson->content : null,
+                        'file_name' => $canAccess ? $lesson->file_name : null,
+                        'file_size_bytes' => $canAccess ? $lesson->file_size_bytes : null,
                         'duration_seconds' => $lesson->duration_seconds,
                         'is_preview' => (bool) $lesson->is_preview,
-                        'is_accessible' => $isUnlocked || (bool) $lesson->is_preview,
+                        'is_accessible' => $canAccess,
                         'progress' => $prog,
                     ];
                 });
@@ -84,6 +91,7 @@ class EnrollmentResource extends JsonResource
                     'title' => $module->title,
                     'slug' => $module->slug,
                     'description' => $module->description,
+                    'image_path' => $module->image_path,
                     'image_url' => $module->image_url,
                     'attachments' => ($isUnlocked && ! $isValidation && $module->relationLoaded('attachments'))
                         ? AttachmentResource::collection($module->attachments)->resolve($request)

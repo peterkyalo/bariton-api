@@ -26,6 +26,8 @@ class StudentCourseController extends Controller
         $enrollments = $request->user()->enrollments()
             ->with([
                 'course.instructors',
+                'course.attachments',
+                'course.modules.attachments',
                 'course.modules.lessons',
                 'enrollmentModules',
                 'lessonProgress',
