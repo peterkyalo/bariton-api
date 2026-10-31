@@ -240,7 +240,8 @@ test('uploaded PDF course materials stream inline with frame-ancestors header fo
         ])
         ->assertCreated();
 
-    $streamUrl = $pdfRes->json('data.url');
+    $streamUrl = $pdfRes->json('attachment.url');
+    expect($streamUrl)->not->toBeNull();
     $path = parse_url($streamUrl, PHP_URL_PATH).'?'.parse_url($streamUrl, PHP_URL_QUERY);
 
     $response = $this->get($path);
