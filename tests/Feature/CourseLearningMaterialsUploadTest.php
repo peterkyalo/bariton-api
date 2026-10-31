@@ -155,3 +155,4 @@ test('student can view richtext lesson and mark complete to progress course', fu
         ->assertJsonPath('lesson_status', 'completed')
         ->assertJsonPath('course_progress_percent', 100);
 });
+
