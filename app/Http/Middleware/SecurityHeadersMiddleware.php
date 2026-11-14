@@ -18,6 +18,9 @@ class SecurityHeadersMiddleware
                 env('FRONTEND_URL', 'http://localhost:5173'),
                 'http://localhost:5173',
                 'http://127.0.0.1:5173',
+                'https://app.bmas.co.ke',
+                'https://bmas.co.ke',
+                'https://www.bmas.co.ke',
                 'https://app.bmas.com',
             ])));
             $response->headers->set('Content-Security-Policy', "frame-ancestors {$allowedAncestors}");
