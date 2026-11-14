@@ -43,7 +43,7 @@ class NewContactInquiryMail extends Mailable
         $subject = e($this->inquiry->subject);
         $message = nl2br(e($this->inquiry->message));
         $date = now()->setTimezone('Africa/Nairobi')->format('d M Y, h:i A T');
-        $adminUrl = rtrim((string) env('FRONTEND_URL', 'https://app.bmas.co.ke'), '/') . '/admin/cms/contact-inquiries';
+        $adminUrl = rtrim((string) env('FRONTEND_URL', 'https://app.bmas.co.ke'), '/') . '/admin/cms/inquiries';
 
         return <<<HTML
 <!DOCTYPE html>
