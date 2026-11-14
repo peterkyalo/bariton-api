@@ -22,6 +22,7 @@ class UserResource extends JsonResource
             'permissions' => $this->getAllPermissions()->pluck('name')->values()->all(),
             'two_factor_enabled' => $this->hasConfirmedTwoFactor(),
             'two_factor_required' => $this->requiresTwoFactor(),
+            'two_factor_confirmed_at' => $this->two_factor_confirmed_at?->toISOString(),
             'is_minor' => $this->isMinor(),
             'locked_until' => $this->locked_until?->toISOString(),
             'failed_login_count' => $this->failed_login_count,

@@ -42,6 +42,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'two_factor_secret',
         'two_factor_recovery_codes',
         'two_factor_confirmed_at',
+        'two_factor_required',
         'notification_preferences',
     ];
 
@@ -60,6 +61,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'privacy_consent_at' => 'datetime',
             'locked_until' => 'datetime',
             'two_factor_confirmed_at' => 'datetime',
+            'two_factor_required' => 'boolean',
             'deletion_requested_at' => 'datetime',
             'failed_login_count' => 'integer',
             'password' => 'hashed',
@@ -197,16 +199,43 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Roles that strictly require TOTP two-factor authentication.
+     * Roles or custom settings that require TOTP two-factor authentication.
      */
     public function requiresTwoFactor(): bool
     {
+        if ($this->two_factor_required !== null) {
+            return (bool) $this->two_factor_required;
+        }
+
         return $this->hasAnyRole(['admin', 'finance_manager', 'finance_staff']);
     }
 
     public function hasConfirmedTwoFactor(): bool
     {
         return ! empty($this->two_factor_secret) && ! empty($this->two_factor_confirmed_at);
+    }
+
+    /**
+     * Turn on two-factor authentication requirement for this user.
+     */
+    public function enableTwoFactorRequirement(): void
+    {
+        $this->forceFill([
+            'two_factor_required' => true,
+        ])->save();
+    }
+
+    /**
+     * Turn off and reset two-factor authentication for this user.
+     */
+    public function disableTwoFactorRequirement(): void
+    {
+        $this->forceFill([
+            'two_factor_required' => false,
+            'two_factor_secret' => null,
+            'two_factor_recovery_codes' => null,
+            'two_factor_confirmed_at' => null,
+        ])->save();
     }
 
     /**
