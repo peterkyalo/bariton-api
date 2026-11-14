@@ -146,4 +146,35 @@ class UserController extends Controller
             'data' => new UserResource($user),
         ]);
     }
+
+    public function updateTwoFactor(Request $request, User $user): JsonResponse
+    {
+        $this->authorize('update', $user);
+
+        $request->validate([
+            'enabled' => ['required', 'boolean'],
+        ]);
+
+        $enabled = $request->boolean('enabled');
+
+        if ($enabled) {
+            $user->enableTwoFactorRequirement();
+            $message = "Two-factor authentication requirement enabled for {$user->name}.";
+            $action = "Turned on 2FA requirement for {$user->name} ({$user->email})";
+        } else {
+            $user->disableTwoFactorRequirement();
+            $message = "Two-factor authentication disabled and reset for {$user->name}.";
+            $action = "Turned off 2FA for {$user->name} ({$user->email})";
+        }
+
+        activity()
+            ->performedOn($user)
+            ->causedBy($request->user())
+            ->log($action);
+
+        return response()->json([
+            'message' => $message,
+            'data' => new UserResource($user->fresh()),
+        ]);
+    }
 }

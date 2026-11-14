@@ -116,13 +116,22 @@ Route::middleware(['auth:sanctum', EnsureUserIsActive::class, EnsureTwoFactorEna
     Route::put('me', [ProfileController::class, 'update']);
     Route::put('me/password', [ProfileController::class, 'updatePassword']);
 
-    // Two-Factor Authentication
+    // Two-Factor Authentication (supports /me and /auth/user paths)
     Route::post('me/two-factor-authentication', [ProfileController::class, 'enableTwoFactor']);
     Route::get('me/two-factor-qr-code', [ProfileController::class, 'twoFactorQrCode']);
     Route::get('me/two-factor-secret-key', [ProfileController::class, 'twoFactorSecret']);
     Route::post('me/confirmed-two-factor-authentication', [ProfileController::class, 'confirmTwoFactor']);
     Route::get('me/two-factor-recovery-codes', [ProfileController::class, 'recoveryCodes']);
     Route::delete('me/two-factor-authentication', [ProfileController::class, 'disableTwoFactor']);
+
+    Route::prefix('auth/user')->group(function () {
+        Route::post('two-factor-authentication', [ProfileController::class, 'enableTwoFactor']);
+        Route::get('two-factor-qr-code', [ProfileController::class, 'twoFactorQrCode']);
+        Route::get('two-factor-secret-key', [ProfileController::class, 'twoFactorSecret']);
+        Route::post('confirmed-two-factor-authentication', [ProfileController::class, 'confirmTwoFactor']);
+        Route::get('two-factor-recovery-codes', [ProfileController::class, 'recoveryCodes']);
+        Route::delete('two-factor-authentication', [ProfileController::class, 'disableTwoFactor']);
+    });
 
     // GDPR / Kenya Data Protection Act Portability & Deletion
     Route::get('me/data-exports', [ProfileController::class, 'dataExports']);
@@ -293,6 +302,7 @@ Route::middleware(['auth:sanctum', EnsureUserIsActive::class, EnsureTwoFactorEna
         Route::put('users/{user}', [UserController::class, 'update']);
         Route::put('users/{user}/roles', [UserController::class, 'updateRoles']);
         Route::put('users/{user}/status', [UserController::class, 'updateStatus']);
+        Route::put('users/{user}/two-factor', [UserController::class, 'updateTwoFactor']);
 
         // Roles & Permissions
         Route::get('roles', [RoleController::class, 'index']);

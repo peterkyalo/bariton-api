@@ -10,6 +10,18 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
+Artisan::command('mail:test {email}', function (string $email) {
+    $this->info("Sending test email to {$email} using " . config('mail.mailers.smtp.host') . ":" . config('mail.mailers.smtp.port') . "...");
+    try {
+        Illuminate\Support\Facades\Mail::raw('This is a test email from Bariton Music Academy (cPanel SMTP).', function ($msg) use ($email) {
+            $msg->to($email)->subject('SMTP Mail Test - Bariton Music Academy');
+        });
+        $this->info("Test email successfully sent to {$email}!");
+    } catch (\Throwable $e) {
+        $this->error("Failed to send email: " . $e->getMessage());
+    }
+})->purpose('Send a test email via SMTP to verify configuration');
+
 /*
 |--------------------------------------------------------------------------
 | Scheduled Cron Tasks

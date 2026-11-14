@@ -14,7 +14,7 @@ class UsersSeeder extends Seeder
 
         // 1. Admin
         $admin = User::firstOrCreate(
-            ['email' => 'admin@bmas.com'],
+            ['email' => 'admin@bmas.co.ke'],
             [
                 'name' => 'Bariton Admin',
                 'phone' => '+254711000001',
